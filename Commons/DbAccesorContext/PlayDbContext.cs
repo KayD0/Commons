@@ -20,7 +20,7 @@ namespace Commons.DbAccesorContext
 
         public void SetConnectiton() 
         {
-            SerializerJson sj = new SerializerJson("appsettings.json");
+            ConverterJson sj = new ConverterJson("appsettings.json");
             JObject jo = sj.DeserializeToObjext();
             this.Database.Connection.ConnectionString = jo["Data"]["PlayConnectionString"].ToString();
         }

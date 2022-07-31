@@ -14,7 +14,7 @@ namespace CommonsNUnitTest
         [Test]
         public void SerializeTest()
         {
-            SerializerJson sj = new SerializerJson("weatherForecast.json");
+            ConverterJson sj = new ConverterJson("weatherForecast.json");
             
             var weatherForecast = new WeatherForecast
             {
@@ -42,7 +42,7 @@ namespace CommonsNUnitTest
         [Test]
         public void DeserializeToObjextTest()
         {
-            SerializerJson sj = new SerializerJson("appsettings.json");
+            ConverterJson sj = new ConverterJson("appsettings.json");
             JObject jo = sj.DeserializeToObjext();
             var t = jo["Data"]["PlayConnectionString"].ToString();
         }

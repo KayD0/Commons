@@ -37,5 +37,23 @@ namespace Commons.DbAccessor
         /// <param name="paramList"></param>
         /// <returns></returns>
         public abstract bool ExecuteQuery(string tableName, ref DataSet dataset, string commandSql, List<DbParamerter> paramList);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="datatable"></param>
+        /// <param name="commandSql"></param>
+        /// <param name="paramList"></param>
+        /// <returns></returns>
+        public abstract bool ExecuteQuery(ref DataTable datatable, string commandSql, List<DbParamerter> paramList);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <param name="commandSql"></param>
+        /// <param name="paramList"></param>
+        /// <returns></returns>
+        public abstract bool ExecuteQueryForScalar(ref object obj, string commandSql, List<DbParamerter> paramList);
     }
 }

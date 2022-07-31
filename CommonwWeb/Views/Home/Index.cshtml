@@ -1,0 +1,38 @@
+﻿@model CommonwWeb.Models.HomeViewModel
+@{
+    ViewData["Title"] = "Home Page";
+}
+    <div>
+        <form id="base-info">
+            @Html.AntiForgeryToken()
+            <span class="alert-danger">
+                @Html.ValidationSummary(true)
+            </span>
+            <input type="hidden" asp-for="DataBase" value="PlayGround">
+            <input type="hidden" asp-for="Iid" value="9999">
+            <input type="hidden" asp-for="FileType" value="CSV">
+        </form>
+
+        <form method="POST" 
+              id="base-info2"
+              asp-controller="Home" asp-action="Download2"
+              data-ajax="true" data-ajax-method="POST">
+
+            @Html.AntiForgeryToken()
+            <span class="alert-danger">
+                @Html.ValidationSummary(true)
+            </span>
+            <input type="hidden" id="DataBase2" value="PlayGround">
+            <input type="hidden" id="Iid2" value="9999">
+            <input type="hidden" id="FileType2" value="text/csv">
+            <input type="submit" id="BtnTest3" value="BtnTest3">
+        </form>
+        <input type="button" id="BtnTest1" value="BtnTest1">
+        <input type="button" id="BtnTest2" value="BtnTest2">
+        
+        <input type="hidden" id="FileType3" value="text/plain">
+        <input type="hidden" id="FileType4" value="text/csv">
+        <input type="hidden" id="FileType5" value="application/pdf">
+        <input type="hidden" id="FileType5" value="application/vnd.ms-excel">
+        <input type="hidden" id="FileType5" value="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet	">
+    </div>
