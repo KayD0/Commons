@@ -14,37 +14,13 @@ namespace CommonsNUnitTest
         [Test]
         public void SerializeTest()
         {
-            ConverterJson sj = new ConverterJson("weatherForecast.json");
             
-            var weatherForecast = new WeatherForecast
-            {
-                Date = DateTime.Parse("2019-08-01"),
-                TemperatureCelsius = 25,
-                Summary = "Hot",
-                SummaryField = "Hot",
-                DatesAvailable = new List<DateTimeOffset>()
-                    { DateTime.Parse("2019-08-01"), DateTime.Parse("2019-08-02") },
-                TemperatureRanges = new Dictionary<string, HighLowTemps>
-                {
-                    ["Cold"] = new HighLowTemps { High = 20, Low = -10 },
-                    ["Hot"] = new HighLowTemps { High = 60, Low = 20 }
-                },
-                SummaryWords = new[] { "Cool", "Windy", "Humid" }
-            };
-            
-            List<WeatherForecast> wf = new List<WeatherForecast>();
-            wf.Add(weatherForecast);
-            wf.Add(weatherForecast);
-
-            sj.Serialize(wf);
         }
 
         [Test]
         public void DeserializeToObjextTest()
         {
-            ConverterJson sj = new ConverterJson("appsettings.json");
-            JObject jo = sj.DeserializeToObjext();
-            var t = jo["Data"]["PlayConnectionString"].ToString();
+            
         }
     }
 }

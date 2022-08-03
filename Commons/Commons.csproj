@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <Folder Include="DataConverter\Factory\" />
+    <Folder Include="DataConverter\ConverterJsonModel\" />
   </ItemGroup>
 
   <ProjectExtensions><VisualStudio><UserProperties appsettings_1json__JsonSchema="" /></VisualStudio></ProjectExtensions>

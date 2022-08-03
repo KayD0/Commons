@@ -10,8 +10,8 @@ using Newtonsoft.Json.Linq;
 namespace Commons.FileReader
 {
 
-    public class ConverterJson
-   {
+    public class ConverterJson : ConverterStream
+    {
         /// <summary>
         /// 
         /// </summary>
@@ -29,57 +29,67 @@ namespace Commons.FileReader
         /// <summary>
         /// 
         /// </summary>
-        public string Deserialize()
+        public string ConvertJsonFromFile()
         {
             if (!File.Exists(this.filePath))
             {
-                LoggerBase.logger.Error("[ProcessId:{0}] [JSONデシリアライズ実行処理] ファイルが存在しません。", LoggerBase.ProcessId);
                 return "";
             }
 
             string jsonData = string.Empty;
             try
             {
-                LoggerBase.logger.Info("[ProcessId:{0}] [JSONデシリアライズ実行処理] 開始", LoggerBase.ProcessId);
                 using (var sr = new StreamReader(this.filePath, System.Text.Encoding.UTF8))
                 {
                     jsonData = sr.ReadToEnd();
                 }
-                LoggerBase.logger.Info("[ProcessId:{0}] [JSONデシリアライズ実行処理] 成功", LoggerBase.ProcessId);
             }
             catch (Exception e)
             {
-                LoggerBase.logger.Info("[ProcessId:{0}] [JSONデシリアライズ実行処理] 異常終了", LoggerBase.ProcessId);
                 LoggerBase.logger.Info(e.Message);
             }
             return jsonData;
         }
 
-        public JObject DeserializeToObjext()
+        public string ConvertJsonFromString()
         {
             if (!File.Exists(this.filePath))
             {
-                LoggerBase.logger.Error("[ProcessId:{0}] [JSONデシリアライズ実行処理] ファイルが存在しません。", LoggerBase.ProcessId);
-                return null;
+                return "";
             }
 
             string jsonData = string.Empty;
             try
             {
-                LoggerBase.logger.Info("[ProcessId:{0}] [JSONデシリアライズ実行処理] 開始", LoggerBase.ProcessId);
                 using (var sr = new StreamReader(this.filePath, System.Text.Encoding.UTF8))
                 {
                     jsonData = sr.ReadToEnd();
                 }
-                LoggerBase.logger.Info("[ProcessId:{0}] [JSONデシリアライズ実行処理] 成功", LoggerBase.ProcessId);
             }
             catch (Exception e)
             {
-                LoggerBase.logger.Info("[ProcessId:{0}] [JSONデシリアライズ実行処理] 異常終了", LoggerBase.ProcessId);
-                LoggerBase.logger.Info(e.Message);
+            }
+            return jsonData;
+        }
+
+        public T DeserializeToObjext<T>(string json)
+        {
+
+            //文字列を読込
+            var sr = this.ConvertJsonStreamFromString(json);
+
+
+            T obj = (T)JsonSerializer.Deserialize(sr);
+            string jsonData = string.Empty;
+            try
+            {
+                
+            }
+            catch (Exception e)
+            {
             }
 
-            return JObject.Parse(jsonData);
+            return obj;
         }
 
         /// <summary>
@@ -92,17 +102,12 @@ namespace Commons.FileReader
 
             try
             {
-                LoggerBase.logger.Info("[ProcessId:{0}] [JSONデリアライズ実行処理] 開始", LoggerBase.ProcessId);
                 string jsonData = JsonConvert.SerializeObject(obj);
                 File.WriteAllText(this.filePath, jsonData);
-                LoggerBase.logger.Info("[ProcessId:{0}] [JSONデリアライズ実行処理] 成功", LoggerBase.ProcessId);
             }
             catch (Exception e)
             {
-                LoggerBase.logger.Info("[ProcessId:{0}] [JSONデリアライズ実行処理] 異常終了", LoggerBase.ProcessId);
-                LoggerBase.logger.Info(e.Message);
             }
-            LoggerBase.logger.Info("[ProcessId:{0}] [JSONシリアライズ実行処理] 終了", LoggerBase.ProcessId);
         }
     }
 }
