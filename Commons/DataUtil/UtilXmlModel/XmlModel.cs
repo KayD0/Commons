@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Commons.DataConverter.ConverterXmlModel
+namespace Commons.DataUtil.UtilXmlModel
 {
     //以下の構造
     //<User>

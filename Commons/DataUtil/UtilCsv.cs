@@ -1,29 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
+using Commons.DataUtil.UtilJsonModel;
+using CsvHelper;
+using CsvHelper.Configuration;
 //using System.Text.Json;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace Commons.FileReader
+namespace Commons.DataUtil
 {
 
-    public class ConverterCsv
+    public class UtilCsv : UtilStream
     {
-        /// <summary>
-        /// 
-        /// </summary>
-        private string filePath = string.Empty;
-
         /// <summary>
         /// コンストラクタ
         /// </summary>
         /// <param name="fileName"></param>
-        public ConverterCsv(string fileName) 
+        public UtilCsv() 
         {
-            this.filePath = System.Environment.CurrentDirectory + @"\" + fileName;
+            
         }
 
 
@@ -32,63 +32,32 @@ namespace Commons.FileReader
         /// </summary>
         /// <param name="dt"></param>
         /// <param name="writeHeader"></param>
-        public void ConvertToCsvFile(DataTable dt, bool writeHeader)
+        public void ConvertDtToCsvFile(DataTable dt, bool writeHeader, string filePath)
         {
-            //CSVファイルに書き込むときに使うEncoding
-            System.Text.Encoding enc =
-                System.Text.Encoding.GetEncoding("Shift_JIS");
-
-            //書き込むファイルを開く
-            System.IO.StreamWriter sr =
-                new System.IO.StreamWriter(this.filePath, false, enc);
-
-            int colCount = dt.Columns.Count;
-            int lastColIndex = colCount - 1;
-
-            //ヘッダを書き込む
-            if (writeHeader)
+            using (var textWriter = File.CreateText(filePath))
+            using (var csv = new CsvWriter(textWriter, new CultureInfo("ja-JP", false)))
             {
-                for (int i = 0; i < colCount; i++)
+                // Write columns
+                if (writeHeader) 
                 {
-                    //ヘッダの取得
-                    string field = dt.Columns[i].Caption;
-                    //"で囲む
-                    field = EncloseDoubleQuotesIfNeed(field);
-                    //フィールドを書き込む
-                    sr.Write(field);
-                    //カンマを書き込む
-                    if (lastColIndex > i)
+                    foreach (DataColumn column in dt.Columns)
                     {
-                        sr.Write(',');
+                        csv.WriteField(column.ColumnName);
                     }
+                    csv.NextRecord();
                 }
-                //改行する
-                sr.Write("\r\n");
-            }
-
-            //レコードを書き込む
-            foreach (DataRow row in dt.Rows)
-            {
-                for (int i = 0; i < colCount; i++)
+                // Write row values
+                foreach (DataRow row in dt.Rows)
                 {
-                    //フィールドの取得
-                    string field = row[i].ToString();
-                    //"で囲む
-                    field = EncloseDoubleQuotesIfNeed(field);
-                    //フィールドを書き込む
-                    sr.Write(field);
-                    //カンマを書き込む
-                    if (lastColIndex > i)
+                    for (var i = 0; i < dt.Columns.Count; i++)
                     {
-                        sr.Write(',');
+                        csv.WriteField(row[i]);
                     }
+                    csv.NextRecord();
                 }
-                //改行する
-                sr.Write("\r\n");
-            }
 
-            //閉じる
-            sr.Close();
+                var test = csv.ToString();
+            }
         }
 
         /// <summary>
@@ -96,7 +65,7 @@ namespace Commons.FileReader
         /// </summary>
         /// <param name="dt"></param>
         /// <param name="writeHeader"></param>
-        public string ConvertToCsvData(DataTable dt, bool writeHeader)
+        public string ConvertDtToCsvData(DataTable dt, bool writeHeader)
         {
 
             int colCount = dt.Columns.Count;
@@ -141,7 +110,55 @@ namespace Commons.FileReader
 
             return sb.ToString();
         }
-        //return File(csvData, "text/csv", fileName);
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="dt"></param>
+        /// <param name="writeHeader"></param>
+        public void ConvertObjToCsvFile<T>(List<T> obj, bool writeHeader, string filePath)
+        {
+            using (FileStream fs = File.Create(filePath))
+            {
+                fs.Close();
+                fs.Dispose();
+            }
+            using (var streamWriter = new StreamWriter(filePath))
+            using (var csv = new CsvWriter(streamWriter, new CultureInfo("ja-JP", false)))
+            {
+                //ヘッダー
+                if (writeHeader) 
+                {
+                    csv.WriteHeader<T>();
+                    csv.NextRecord();
+                }
+                //データ部
+                foreach (var t in obj)
+                {
+                    csv.WriteRecord(t);
+                    csv.NextRecord();
+                }
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="dt"></param>
+        /// <param name="writeHeader"></param>
+        public List<T> ConvertCsvFileToCsv<T>(string filePath)
+        {
+            using (var reader = new StreamReader(filePath, Encoding.GetEncoding(this.Encode)))
+            using (var csv = new CsvReader(reader, new CultureInfo("ja-JP", false)))
+            {
+                //csv.Configuration.HasHeaderRecord = false;
+                //csv.Configuration.Delimiter = ",";
+                //csv.Configuration.IgnoreBlankLines = true;
+
+                return csv.GetRecords<T>().ToList();
+            }
+        }
+
 
         /// <summary>
         /// 必要ならば、文字列をダブルクォートで囲む
@@ -182,5 +199,12 @@ namespace Commons.FileReader
                 field.EndsWith(" ") ||
                 field.EndsWith("\t");
         }
+
+        public void Main()
+        {
+            
+        }
     }
+
+    
 }

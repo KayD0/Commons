@@ -47,9 +47,9 @@ namespace Commons.DbAccessor.Parameters
         /// </summary>
         public OracleDbType DbTypeOracle;
 
-      /// <summary>
-      /// 
-      /// </summary>
-      public NpgsqlTypes.NpgsqlDbType DbTypeNpgsql;
-   }
+        /// <summary>
+        /// 
+        /// </summary>
+        public NpgsqlTypes.NpgsqlDbType DbTypeNpgsql;
+    }
 }

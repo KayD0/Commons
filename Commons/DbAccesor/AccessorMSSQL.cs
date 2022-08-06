@@ -11,7 +11,7 @@ using System.Data.SqlClient;
 using Commons;
 using Commons.DbAccessor;
 using Commons.DbAccessor.Parameters;
-using Commons.FileReader;
+using Commons.DataUtil;
 using Newtonsoft.Json.Linq;
 
 namespace Commons.DbAccessor
@@ -28,8 +28,8 @@ namespace Commons.DbAccessor
         /// </summary>
         public AccessorMssql()
         {
-            ConverterJson sj = new ConverterJson("appsettings.json");
-            JObject jo = sj.DeserializeToObjext();
+            UtilJson sj = new UtilJson();
+            JObject jo = sj.ConvertFileToJObject(@"C:\99_playground\CommonsNUnitTest\appsettings.json");
             string ConnectionStr = jo["Data"]["PlayConnectionString"].ToString();
             this.conn = new SqlConnection(ConnectionStr);
         }
@@ -81,7 +81,13 @@ namespace Commons.DbAccessor
                         command.CommandType = CommandType.StoredProcedure;
                         foreach (DbParamerter para in paramList)
                         {
-                            command.Parameters.Add(para.Name, para.DbTypeMssql, para.Size);
+                            SqlParameter sqlPara = new SqlParameter();
+                            sqlPara.ParameterName = para.Name;
+                            sqlPara.Value = para.Val;
+                            sqlPara.Size = para.Size;
+                            sqlPara.SqlDbType = para.DbTypeMssql;
+                            sqlPara.Direction = para.Direction;
+                            command.Parameters.Add(sqlPara);
                         }
 
                         //ストアドを実行する
@@ -134,7 +140,13 @@ namespace Commons.DbAccessor
                     command.CommandType = CommandType.Text;
                     foreach (DbParamerter para in paramList)
                     {
-                        command.Parameters.Add(para.Name,para.DbTypeMssql, para.Size);
+                        SqlParameter sqlPara = new SqlParameter();
+                        sqlPara.ParameterName = para.Name;
+                        sqlPara.Value = para.Val;
+                        sqlPara.Size = para.Size;
+                        sqlPara.SqlDbType = para.DbTypeMssql;
+                        sqlPara.Direction = para.Direction;
+                        command.Parameters.Add(sqlPara);
                     }
 
                     //コマンド実行
@@ -190,7 +202,13 @@ namespace Commons.DbAccessor
                     command.CommandType = CommandType.Text;
                     foreach (DbParamerter para in paramList)
                     {
-                        command.Parameters.Add(para.Name, para.DbTypeMssql, para.Size);
+                        SqlParameter sqlPara = new SqlParameter();
+                        sqlPara.ParameterName = para.Name;
+                        sqlPara.Value = para.Val;
+                        sqlPara.Size = para.Size;
+                        sqlPara.SqlDbType = para.DbTypeMssql;
+                        sqlPara.Direction = para.Direction;
+                        command.Parameters.Add(sqlPara);
                     }
 
                     //コマンド実行
@@ -246,7 +264,13 @@ namespace Commons.DbAccessor
                     command.CommandType = CommandType.Text;
                     foreach (DbParamerter para in paramList)
                     {
-                        command.Parameters.Add(para.Name, para.DbTypeMssql, para.Size);
+                        SqlParameter sqlPara = new SqlParameter();
+                        sqlPara.ParameterName = para.Name;
+                        sqlPara.Value = para.Val;
+                        sqlPara.Size = para.Size;
+                        sqlPara.SqlDbType = para.DbTypeMssql;
+                        sqlPara.Direction = para.Direction;
+                        command.Parameters.Add(sqlPara);
                     }
 
                     //コマンド実行

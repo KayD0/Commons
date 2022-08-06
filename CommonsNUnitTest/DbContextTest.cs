@@ -13,15 +13,5 @@ namespace CommonsNUnitTest
 {
     public class DbContextTest
     {
-        [Test]
-        public void GetDbContextTest()
-        {
-            PlayDbContext pdb = new PlayDbContext();
-            pdb.SetConnectiton();
-
-            var a = pdb.Students.FirstOrDefault();
-
-        }
-
     }
 }
