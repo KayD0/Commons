@@ -20,7 +20,7 @@ namespace Commons.DbAccessor.Parameters
         /// <summary>
         /// 
         /// </summary>
-        public string Val = string.Empty;
+        public Object Val;
 
         /// <summary>
         /// 

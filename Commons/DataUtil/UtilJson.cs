@@ -14,19 +14,27 @@ namespace Commons.DataUtil
     public class UtilJson : UtilStream
     {
 
+        #region 
         /// <summary>
-        /// 
+        /// コンストラクタ
         /// </summary>
         public UtilJson()
         {
         }
+        
 
+        /// <summary>
+        /// コンストラクタ
+        /// </summary>
+        /// <param name="path"></param>
         public UtilJson(string path)
         {
         }
+        #endregion
 
+        #region File → JString 
         /// <summary>
-        /// 
+        /// File → JString 
         /// </summary>
         /// <param name="filePath"></param>
         /// <returns></returns>
@@ -46,9 +54,11 @@ namespace Commons.DataUtil
             }
             return jsonData;
         }
+        #endregion
 
+        #region File → JObject
         /// <summary>
-        /// 
+        /// File → JObject
         /// </summary>
         /// <returns></returns>
         public JObject ConvertFileToJObject(string filePath)
@@ -67,7 +77,9 @@ namespace Commons.DataUtil
             }
             return JObject.Parse(jsonData);
         }
+        #endregion
 
+        #region JString → Object
         public T ConvertJStringToObject<T>(string context)
         {
             using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(context)))
@@ -80,5 +92,6 @@ namespace Commons.DataUtil
                 return (T)serializer.ReadObject(stream);
             }
         }
+        #endregion
     }
 }

@@ -12,6 +12,7 @@ using System.Data;
 using Commons.FileReader;
 using System.Text;
 using Microsoft.AspNetCore.Http;
+using Commons.DataUtil;
 
 namespace CommonwWeb.Controllers
 {
@@ -34,46 +35,46 @@ namespace CommonwWeb.Controllers
             return View();
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Download(HomeViewModel m)
-        {
-            
-            var dataBase1 = Request.Form["DataBase2"].FirstOrDefault();
-            var iid1 = Request.Form["Iid2"].FirstOrDefault();
-            var fileType1 = Request.Form["FileType2"].FirstOrDefault();
+        //[HttpPost]
+        //public async Task<IActionResult> Download(HomeViewModel m)
+        //{
 
-            AccessorMssql mssql = new AccessorMssql();
-            string cmd = "SELECT * FROM PlayGround.dbo.Student";
-            List<DbParamerter> paramList = new List<DbParamerter>();
-            DataTable dt = new DataTable();
-            mssql.ExecuteQuery(ref dt, cmd, paramList);
+            //var dataBase1 = Request.Form["DataBase2"].FirstOrDefault();
+            //var iid1 = Request.Form["Iid2"].FirstOrDefault();
+            //var fileType1 = Request.Form["FileType2"].FirstOrDefault();
 
-            ConverterCsv cc = new ConverterCsv("");
-            string csvData = cc.ConvertToCsvData(dt, true);
-            byte[] csvDataByte = Encoding.ASCII.GetBytes(csvData);
+            //AccessorMssql mssql = new AccessorMssql();
+            //string cmd = "SELECT * FROM PlayGround.dbo.Student";
+            //List<DbParamerter> paramList = new List<DbParamerter>();
+            //DataTable dt = new DataTable();
+            //mssql.ExecuteQuery(ref dt, cmd, paramList);
 
-            return File(csvDataByte, fileType1);
-        }
+            //UtilCsv cc = new UtilCsv();
+            //string csvData = cc.ConvertToCsvData(dt, true);
+            //byte[] csvDataByte = Encoding.ASCII.GetBytes(csvData);
 
-        public async Task<IActionResult> Download2()
-        {
+            //return File(csvDataByte, fileType1);
+        //}
+
+        //public async Task<IActionResult> Download2()
+        //{
             //var req = Request;
             //var dataBase1 = Request.Form["DataBase2"];
             //var iid1 = Request.Form["Iid2"];
             //var fileType1 = Request.Form["FileType2"];
 
-            AccessorMssql mssql = new AccessorMssql();
-            string cmd = "SELECT * FROM PlayGround.dbo.Student";
-            List<DbParamerter> paramList = new List<DbParamerter>();
-            DataTable dt = new DataTable();
-            mssql.ExecuteQuery(ref dt, cmd, paramList);
+            //AccessorMssql mssql = new AccessorMssql();
+            //string cmd = "SELECT * FROM PlayGround.dbo.Student";
+            //List<DbParamerter> paramList = new List<DbParamerter>();
+            //DataTable dt = new DataTable();
+            //mssql.ExecuteQuery(ref dt, cmd, paramList);
 
-            ConverterCsv cc = new ConverterCsv("");
-            string csvData = cc.ConvertToCsvData(dt, true);
-            byte[] csvDataByte = Encoding.ASCII.GetBytes(csvData);
+            //UtilCsv cc = new UtilCsv();
+            //string csvData = cc.ConvertToCsvData(dt, true);
+            //byte[] csvDataByte = Encoding.ASCII.GetBytes(csvData);
 
-            return PhysicalFile(csvDataByte, "text/csv");
-        }
+            //return PhysicalFile(csvDataByte, "text/csv");
+        //}
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
