@@ -3,6 +3,7 @@ using Commons.DbAccessor.Parameters;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Text;
@@ -104,7 +105,7 @@ namespace Commons.DbAccesor.Services
             mssql.ExecuteQuery(sql.ToString(), prams);
         }
 
-        public byte[] ReadImage(int iid)
+        public byte[] ReadImage(int iid, ref Hashtable ret)
         {
             List<DbParamerter> dbParams = new List<DbParamerter>();
 
@@ -118,12 +119,20 @@ namespace Commons.DbAccesor.Services
             DataTable dt = new DataTable();
             StringBuilder sql = new StringBuilder();
             sql.AppendLine(" SELECT ");
-            sql.AppendLine("   Image ");
+            sql.AppendLine("   Name ");
+            sql.AppendLine("   ,Image ");
+            sql.AppendLine("   ,Filetype ");
+            sql.AppendLine("   ,Filecontenttype ");
             sql.AppendLine(" FROM ");
             sql.AppendLine("   PlayGround.dbo.DATAIMAGE ");
+            sql.AppendLine(" WHERE ");
+            sql.AppendLine("   Iid = @Iid ");
             mssql.ExecuteQuery(ref dt, sql.ToString(), dbParams);
 
-            var image = (Byte[])dt.Rows[0]["Image"];
+            var image    = (Byte[])dt.Rows[0]["Image"];
+            ret["Name"] = dt.Rows[0]["Name"].ToString();
+            ret["Filetype"]      = dt.Rows[0]["Filetype"].ToString();
+            ret["FiletContentType"] = dt.Rows[0]["Filecontenttype"].ToString();
             return image;
         }
     }

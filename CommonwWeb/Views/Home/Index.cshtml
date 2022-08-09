@@ -2,37 +2,25 @@
 @{
     ViewData["Title"] = "Home Page";
 }
+
+
+<!-- 以下を参考にしてjsのみで非同期通信を行う -->
+<!-- https://qiita.com/kenta8813/items/d0307c258d61ecebb064 -->
     <div>
-        <form id="base-info">
+        <!-- ダウンロード基本 -->
+        <form id="download" action="@Url.Action("Download","Home")" method="post">
             @Html.AntiForgeryToken()
-            <span class="alert-danger">
-                @Html.ValidationSummary(true)
-            </span>
-            <input type="hidden" asp-for="DataBase" value="PlayGround">
-            <input type="hidden" asp-for="Iid" value="9999">
-            <input type="hidden" asp-for="FileType" value="CSV">
+            <input type="hidden" class="download-item" name="iid" value="2">
+            <input type="submit" id="btn-basic-download" value="btn-download">
         </form>
-
-        <form method="POST" 
-              id="base-info2"
-              asp-controller="Home" asp-action="Download2"
-              data-ajax="true" data-ajax-method="POST">
-
+        <form id="open-download" action="@Url.Action("DownloadOpen","Home")" method="post">
             @Html.AntiForgeryToken()
-            <span class="alert-danger">
-                @Html.ValidationSummary(true)
-            </span>
-            <input type="hidden" id="DataBase2" value="PlayGround">
-            <input type="hidden" id="Iid2" value="9999">
-            <input type="hidden" id="FileType2" value="text/csv">
-            <input type="submit" id="BtnTest3" value="BtnTest3">
+            <input type="hidden" class="open-download-item" name="iid" value="2">
+            <input type="submit" id="btn-open-download" value="btn-open-download">
         </form>
-        <input type="button" id="BtnTest1" value="BtnTest1">
-        <input type="button" id="BtnTest2" value="BtnTest2">
-        
-        <input type="hidden" id="FileType3" value="text/plain">
-        <input type="hidden" id="FileType4" value="text/csv">
-        <input type="hidden" id="FileType5" value="application/pdf">
-        <input type="hidden" id="FileType5" value="application/vnd.ms-excel">
-        <input type="hidden" id="FileType5" value="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet	">
+        <form id="open-new-tab-download" action="@Url.Action("DownloadOpenNewTab","Home")" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" class="open-new-tab-download-item" name="iid" value="2">
+            <input type="submit" id="btn-open-new-tab-download" value="btn-open-new-tab-download">
+        </form>
     </div>

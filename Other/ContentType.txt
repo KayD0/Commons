@@ -1,0 +1,25 @@
+text/plain	テキストファイル
+text/csv	CSVファイル
+text/html	HTMLファイル
+text/css	CSSファイル
+text/javascript	JavaScriptファイル
+application/octet-stream	EXEファイルなどの実行ファイル
+application/json	JSONファイル
+application/pdf	PDFファイル
+application/vnd.ms-excel	EXCELファイル( .xls OFFICE 2007より過去)
+application/vnd.openxmlformats-officedocument.spreadsheetml.sheet	EXCELファイル( .xlsx OFFICE 2007以降)
+application/vnd.ms-powerpoint	PowerPointファイル( .ppt OFFICE 2007より過去)
+application/vnd.openxmlformats-officedocument.presentationml.presentation	PowerPointファイル( .pptx OFFICE 2007以降)
+application/msword	WORDファイル( .doc OFFICE 2007より過去)
+application/vnd.openxmlformats-officedocument.wordprocessingml.document	WORDファイル(.docx OFFICE 2007以降)
+image/jpeg	JPEGファイル(.jpg, .jpeg)
+image/png	PNGファイル
+image/gif	GIFファイル
+image/bmp	Bitmapファイル
+image/svg+xml	SVGファイル
+application/zip	Zipファイル
+application/x-lzh	LZHファイル
+application/x-tar	tarファイル/tar&gzipファイル
+audio/mpeg	MP3ファイル
+video/mp4	MP4ファイル
+video/mpeg	MPEGファイル（動画）

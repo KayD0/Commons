@@ -17,6 +17,7 @@ using CsvHelper;
 using CsvHelper.Configuration;
 using System.Linq;
 using Commons.DbAccesor.Services;
+using System.Collections;
 
 namespace CommonsNUnitTest
 {
@@ -37,7 +38,8 @@ namespace CommonsNUnitTest
             //sMssql.InsertImage(2, imageByteArray, "RM内定通知書畑迫様.pdf");
 
             //データベース読み取り
-            byte[] readImage = sMssql.ReadImage(2);
+            Hashtable ret = new Hashtable();
+            byte[] readImage = sMssql.ReadImage(2,ref ret);
 
             //ファイル書き込み
             File.WriteAllBytes(@"C:\work\RM内定通知書畑迫様2.pdf", readImage);

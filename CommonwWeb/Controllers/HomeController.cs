@@ -13,12 +13,18 @@ using Commons.FileReader;
 using System.Text;
 using Microsoft.AspNetCore.Http;
 using Commons.DataUtil;
+using Commons.DbAccesor.Services;
+using System.Collections;
+using System.IO;
+using System.Net.Http.Headers;
 
 namespace CommonwWeb.Controllers
 {
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+
+        private ServiceMssql sMssql = new ServiceMssql();
 
         public HomeController(ILogger<HomeController> logger)
         {
@@ -35,46 +41,108 @@ namespace CommonwWeb.Controllers
             return View();
         }
 
-        //[HttpPost]
-        //public async Task<IActionResult> Download(HomeViewModel m)
-        //{
+        /// <summary>
+        /// ダウンロード（実態）
+        /// </summary>
+        /// <param name="m"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public IActionResult Download(HomeViewModel m)
+        {
 
-            //var dataBase1 = Request.Form["DataBase2"].FirstOrDefault();
-            //var iid1 = Request.Form["Iid2"].FirstOrDefault();
-            //var fileType1 = Request.Form["FileType2"].FirstOrDefault();
+            //データベース読み取り
+            Hashtable ret = new Hashtable();
+            byte[] readImage = sMssql.ReadImage(2, ref ret);
 
-            //AccessorMssql mssql = new AccessorMssql();
-            //string cmd = "SELECT * FROM PlayGround.dbo.Student";
-            //List<DbParamerter> paramList = new List<DbParamerter>();
-            //DataTable dt = new DataTable();
-            //mssql.ExecuteQuery(ref dt, cmd, paramList);
+            //text/plain                 テキストファイル
+            //text/csv                    CSVファイル
+            //text/html                   HTMLファイル
+            //text/css                    CSSファイル
+            //text/javascript             JavaScriptファイル
+            //application/octet-stream    EXEファイルなどの実行ファイル
+            //application/json            JSONファイル
+            //application/pdf             PDFファイル
+            //application/vnd.ms-excel    EXCELファイル( .xls OFFICE 2007より過去)
+            //application/vnd.openxmlformats-officedocument.spreadsheetml.sheet   EXCELファイル( .xlsx OFFICE 2007以降)
+            //application/vnd.ms-powerpoint   PowerPointファイル( .ppt OFFICE 2007より過去)
+            //application/vnd.openxmlformats-officedocument.presentationml.presentation   PowerPointファイル( .pptx OFFICE 2007以降)
+            //application/msword          WORDファイル( .doc OFFICE 2007より過去)
+            //application/vnd.openxmlformats-officedocument.wordprocessingml.document WORDファイル(.docx OFFICE 2007以降)
+            //application/zip     Zipファイル
+            //application/x-lzh   LZHファイル
+            //application/x-tar   tarファイル / tar & gzipファイル
+            return File(readImage, ret["FiletContentType"].ToString(),ret["Name"].ToString());
+        }
 
-            //UtilCsv cc = new UtilCsv();
-            //string csvData = cc.ConvertToCsvData(dt, true);
-            //byte[] csvDataByte = Encoding.ASCII.GetBytes(csvData);
+        /// <summary>
+        /// ダウンロード（新タブにてブラウザで表示）
+        /// </summary>
+        /// <param name="m"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public IActionResult DownloadOpen(HomeViewModel m)
+        {
 
-            //return File(csvDataByte, fileType1);
-        //}
+            //データベース読み取り
+            Hashtable ret = new Hashtable();
+            byte[] readImage = sMssql.ReadImage(2, ref ret);
 
-        //public async Task<IActionResult> Download2()
-        //{
-            //var req = Request;
-            //var dataBase1 = Request.Form["DataBase2"];
-            //var iid1 = Request.Form["Iid2"];
-            //var fileType1 = Request.Form["FileType2"];
+            //text/plain                 テキストファイル
+            //text/csv                    CSVファイル
+            //text/html                   HTMLファイル
+            //text/css                    CSSファイル
+            //text/javascript             JavaScriptファイル
+            //application/octet-stream    EXEファイルなどの実行ファイル
+            //application/json            JSONファイル
+            //application/pdf             PDFファイル
+            //application/vnd.ms-excel    EXCELファイル( .xls OFFICE 2007より過去)
+            //application/vnd.openxmlformats-officedocument.spreadsheetml.sheet   EXCELファイル( .xlsx OFFICE 2007以降)
+            //application/vnd.ms-powerpoint   PowerPointファイル( .ppt OFFICE 2007より過去)
+            //application/vnd.openxmlformats-officedocument.presentationml.presentation   PowerPointファイル( .pptx OFFICE 2007以降)
+            //application/msword          WORDファイル( .doc OFFICE 2007より過去)
+            //application/vnd.openxmlformats-officedocument.wordprocessingml.document WORDファイル(.docx OFFICE 2007以降)
+            //application/zip     Zipファイル
+            //application/x-lzh   LZHファイル
+            //application/x-tar   tarファイル / tar & gzipファイル
 
-            //AccessorMssql mssql = new AccessorMssql();
-            //string cmd = "SELECT * FROM PlayGround.dbo.Student";
-            //List<DbParamerter> paramList = new List<DbParamerter>();
-            //DataTable dt = new DataTable();
-            //mssql.ExecuteQuery(ref dt, cmd, paramList);
+            //var content = new MemoryStream(readImage);
+            return new FileContentResult(readImage, ret["FiletContentType"].ToString());
+        }
 
-            //UtilCsv cc = new UtilCsv();
-            //string csvData = cc.ConvertToCsvData(dt, true);
-            //byte[] csvDataByte = Encoding.ASCII.GetBytes(csvData);
+        /// <summary>
+        /// ダウンロード（新タブにてブラウザで表示）
+        /// </summary>
+        /// <param name="m"></param>
+        /// <returns></returns>
+        [HttpPost]
+        public IActionResult DownloadOpenNewTab(HomeViewModel m)
+        {
 
-            //return PhysicalFile(csvDataByte, "text/csv");
-        //}
+            //データベース読み取り
+            Hashtable ret = new Hashtable();
+            byte[] readImage = sMssql.ReadImage(2, ref ret);
+
+            //text/plain                 テキストファイル
+            //text/csv                    CSVファイル
+            //text/html                   HTMLファイル
+            //text/css                    CSSファイル
+            //text/javascript             JavaScriptファイル
+            //application/octet-stream    EXEファイルなどの実行ファイル
+            //application/json            JSONファイル
+            //application/pdf             PDFファイル
+            //application/vnd.ms-excel    EXCELファイル( .xls OFFICE 2007より過去)
+            //application/vnd.openxmlformats-officedocument.spreadsheetml.sheet   EXCELファイル( .xlsx OFFICE 2007以降)
+            //application/vnd.ms-powerpoint   PowerPointファイル( .ppt OFFICE 2007より過去)
+            //application/vnd.openxmlformats-officedocument.presentationml.presentation   PowerPointファイル( .pptx OFFICE 2007以降)
+            //application/msword          WORDファイル( .doc OFFICE 2007より過去)
+            //application/vnd.openxmlformats-officedocument.wordprocessingml.document WORDファイル(.docx OFFICE 2007以降)
+            //application/zip     Zipファイル
+            //application/x-lzh   LZHファイル
+            //application/x-tar   tarファイル / tar & gzipファイル
+
+            //var content = new MemoryStream(readImage);
+            return new FileContentResult(readImage, ret["FiletContentType"].ToString());
+        }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
