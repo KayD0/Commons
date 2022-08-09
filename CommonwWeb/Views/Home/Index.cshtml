@@ -18,7 +18,7 @@
             <input type="hidden" class="open-download-item" name="iid" value="2">
             <input type="submit" id="btn-open-download" value="btn-open-download">
         </form>
-        <form id="open-new-tab-download" action="@Url.Action("DownloadOpenNewTab","Home")" method="post">
+        <form target="_blank" id="open-new-tab-download" action="@Url.Action("DownloadOpenNewTab","Home")" method="post">
             @Html.AntiForgeryToken()
             <input type="hidden" class="open-new-tab-download-item" name="iid" value="2">
             <input type="submit" id="btn-open-new-tab-download" value="btn-open-new-tab-download">

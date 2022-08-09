@@ -141,6 +141,7 @@ namespace CommonwWeb.Controllers
             //application/x-tar   tarファイル / tar & gzipファイル
 
             //var content = new MemoryStream(readImage);
+            HttpContext.Response.Headers.Add("content-disposition", "inline;filename=" + ret["Name"].ToString());
             return new FileContentResult(readImage, ret["FiletContentType"].ToString());
         }
 

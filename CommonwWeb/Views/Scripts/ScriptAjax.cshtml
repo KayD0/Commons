@@ -1,45 +1,13 @@
 ﻿<script type="text/javascript">
     $( function() {
-        $(document).on('click', '#BtnTest1', function() {
-            let form = $('#base-info').serialize();
-
-            $.ajax({
-                type: 'POST',
-                dataType: 'json',
-                url: '@Url.Action("Download","Home")',
-                contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
-                timeout: 500, 
-                data: form,
-                success: function (result) {
-
-                },
-                error: function () {
-
-                }
-            })
-        });
-
-        $(document).on('click', '#BtnTest2', function() {
-            let obj = {
-                "DataBase2": $('#DataBase2').val(),
-                "Iid2": $('#Iid2').val(),
-                "FileType2": $('#FileType2').val()
-            }
-
-            $.ajax({
-                type: 'POST',
-                dataType: 'json',
-                url: '@Url.Action("Download","Home")',
-                contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
-                timeout: 500, 
-                data: obj,
-                success: function (result) {
-
-                },
-                error: function () {
-
-                }
-            })
+        $(document).on('click', '#open-new-tab-download-link', function () {
+            OpenNewTab('@Url.Action("DownloadOpenNewTab","Home")');
+            //$('#open-new-tab-download').submit();
         });
     });
+
+    function OpenNewTab(url)
+    {
+        window.open(url, "_blank");
+    }
 </script>
