@@ -8,6 +8,7 @@
 <!-- https://qiita.com/kenta8813/items/d0307c258d61ecebb064 -->
     <div>
         <!-- ダウンロード基本 -->
+        <p>framework</p>
         <form id="download" action="@Url.Action("Download","Home")" method="post">
             @Html.AntiForgeryToken()
             <input type="hidden" class="download-item" name="iid" value="2">
@@ -22,5 +23,13 @@
             @Html.AntiForgeryToken()
             <input type="hidden" class="open-new-tab-download-item" name="iid" value="2">
             <input type="submit" id="btn-open-new-tab-download" value="btn-open-new-tab-download">
+        </form>
+        <p>xml http request</p>
+        <form target="_blank" id="open-new-tab-xml-download" action="@Url.Action("DownloadOpenNewTabXml","Home")" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" class="open-new-tab-xml-download-item" name="iid" value="2">
+            <input type="button" class="btn-download-xml" id="btn-download-xml" value="download">
+            <input type="button" class="btn-download-xml" id="btn-download-xml" value="open">
+            <input type="button" class="btn-download-xml" id="btn-download-xml" value="open-new-tab">
         </form>
     </div>

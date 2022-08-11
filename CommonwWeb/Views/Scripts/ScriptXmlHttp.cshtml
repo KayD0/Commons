@@ -1,0 +1,43 @@
+﻿<script type="text/javascript">
+    var button = document.getElementsByClassName("btn-download-xml");
+    var button = Array.from(button);
+    button.forEach(function(target) {
+        target.addEventListener('click', function(e) {
+            var xhr = new XMLHttpRequest();
+            var val = e.target.value;
+            xhr.open('POST', '@Url.Action("Download_Xml","Home")', true);
+            //xhr.setRequestHeader( 'Content-Type', 'application/x-www-form-urlencoded' );
+
+            xhr.responseType = 'blob';
+            xhr.onload = function (e) {
+                if (this.status == 200) {
+                    //レスポンス
+                    var blob = this.response;
+                    var blobUrl = window.URL.createObjectURL(new Blob([blob],
+                        {
+                            type: blob.type
+                        }));
+                    if (val == "download")
+                    {
+                        var a = document.createElement("a");
+                        document.body.appendChild(a);
+                        a.style = "display: none";
+                        a.innerHTML = 'test.pdf';
+                        a.download = 'test.pdf';
+                        a.href = blobUrl;
+                        a.click();
+                    }
+                    else if (val == "open")
+                    {
+
+                    }
+                    else if (val == "open-new-tab")
+                    {
+                        window.open(blobUrl,'_blank');
+                    }
+                }
+            };
+            xhr.send();
+        });
+    });
+ </script>

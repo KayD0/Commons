@@ -1,0 +1,47 @@
+﻿<script type="text/javascript">
+    //【JavaScript】
+    //DOMの読み込みが終わったら処理の実行をさせたい
+    document.addEventListener('DOMContentLoaded', function () {
+     
+    });
+    //イベントリスナーのセット
+    let button = document.getElementById('xxx');
+    //メソッド変数型
+    button.addEventListener('click', butotnClick);
+    function butotnClick(event){
+        console.log(event);
+    }
+    //リスナー、処理同時定義
+    button.addEventListener('mousedown', function () {
+        console.log('MouseDown');
+    });
+
+    //【JQuery】
+    //DOMの読み込みが終わったら処理の実行をさせたい
+    $(document).ready(function () {
+    });
+    $(function () {
+    });
+    jQuery(function(){
+    });
+    //リスナー、処理同時定義
+    $('#button').on('click', function() {
+        alert("クリックされました");
+    });
+
+    //DOMに関する知識
+    //【普通】
+    //①ブラウザ←プログラマが書いたHTML取り込み
+    //②解析
+    //③DOMの構築
+    //④DOMの内容に基づきブラウザでレイアウトを組み立てる
+    //
+    //【フレームワーク用HTMLスクリプト(ERB,CSHTML)】
+    //①フレームワーク←プログラマが書いたHTML取り込み
+    //②フレームワーク→HTML作成
+    //③ブラウザ←フレームワークが構築したHTML
+    //④解析
+    //⑤DOMの構築
+    //⑥DOMの内容に基づきブラウザでレイアウトを組み立てる
+    //https://qiita.com/sukoyakarizumu/items/d07288a3fa67e19b66de
+</script>
