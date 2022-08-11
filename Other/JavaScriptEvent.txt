@@ -1,0 +1,22 @@
+onBlur	ページやフォーム要素からフォーカスが外れた時に発生
+onFocus	ページやフォーム要素にフォーカスが当たった時に発生
+onChange	フォーム要素の選択、入力内容が変更された時に発生
+onSelect	テキストが選択された時に発生
+onSelectStart	ページ内の要素が選択されようとした時に発生　※IEのみ
+onSubmit	フォームを送信しようとした時に発生
+onReset	フォームがリセットされた時に発生
+onAbort	画像の読み込みを中断した時に発生
+onError	画像の読み込み中にエラーが発生した時に発生
+onLoad	ページや画像の読み込みが完了した時に発生
+onUnload	ウィンドウを閉じた時、他のページに切り替えた時、ページをリロード（更新）した時に発生
+onClick	要素やリンクをクリックした時に発生
+onDblClick	要素をダブルクリックした時に発生
+onKeyUp	押していたキーをあげた時に発生
+onKeyDown	キーを押した時に発生
+onKeyPress	キーを押してる時に発生
+onMouseOut	マウスが離れたした時に発生
+onMouseOver	マウス乗った時に発生
+onMouseUp	クリックしたマウスを上げた時に発生
+onMouseDown	マウスでクリックした時に発生
+onMouseMove	マウスを動かしている時に発生
+onDragDrop	マウスでドラッグ＆ドロップした時に発生　※NN4のみ
