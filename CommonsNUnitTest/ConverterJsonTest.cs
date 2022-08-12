@@ -1,17 +1,15 @@
 using System;
 using System.Data;
 using System.Collections.Generic;
-using Commons.FileReader;
-using Commons.FileReader.Model;
+using Commons.DataUtil;
+using Commons.DataUtil.UtilJsonModel;
+using Commons.DataUtil.UtilXmlModel;
 using NUnit.Framework;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
-using Commons.DataUtil.UtilXmlModel;
-using Commons.DataUtil.UtilJsonModel;
 using System.IO;
 using System.Text;
 using System.Runtime.Serialization.Json;
-using Commons.DataUtil;
 
 namespace CommonsNUnitTest
 {

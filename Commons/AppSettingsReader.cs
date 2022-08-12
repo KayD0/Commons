@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Text;
 using System.IO;
 using System.Runtime.Serialization.Json;
-using Commons.FileReader.Model;
 using Microsoft.Extensions.Configuration;
 
 namespace Commons.ConfigReader
