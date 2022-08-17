@@ -17,6 +17,7 @@ namespace Commons.DataUtil
 
     public class UtilCsv : UtilStream
     {
+        #region コンストラクタ
         /// <summary>
         /// コンストラクタ
         /// </summary>
@@ -25,13 +26,15 @@ namespace Commons.DataUtil
         {
             
         }
+        #endregion
 
-
+        #region DataTable → CSV File
         /// <summary>
-        /// 
+        /// DataTable → CSV File
         /// </summary>
         /// <param name="dt"></param>
         /// <param name="writeHeader"></param>
+        /// <param name="filePath"></param>
         public void ConvertDtToCsvFile(DataTable dt, bool writeHeader, string filePath)
         {
             using (var textWriter = File.CreateText(filePath))
@@ -59,63 +62,54 @@ namespace Commons.DataUtil
                 var test = csv.ToString();
             }
         }
+        #endregion
 
+        #region DataTable → CSV Image
         /// <summary>
-        /// 
+        /// DataTable → CSV Image
         /// </summary>
         /// <param name="dt"></param>
         /// <param name="writeHeader"></param>
-        public string ConvertDtToCsvData(DataTable dt, bool writeHeader)
+        /// <returns></returns>
+        public byte[] ConvertDtToCsvImage(DataTable dt, bool writeHeader)
         {
-
-            int colCount = dt.Columns.Count;
-            int lastColIndex = colCount - 1;
-            var sb = new StringBuilder();
-
-            //ヘッダを書き込む
-            if (writeHeader)
+            using (var memoryStream = new MemoryStream())
             {
-                for (int i = 0; i < colCount; i++)
+                using (var streamWriter = new StreamWriter(memoryStream))
+                using (var csvWriter = new CsvWriter(streamWriter, new CultureInfo("ja-JP", false)))
                 {
-                    //ヘッダの取得
-                    string field = dt.Columns[i].Caption;
-                    //"で囲む
-                    field = EncloseDoubleQuotesIfNeed(field);
-                    //フィールドを書き込む
-                    sb.Append($@"""{field}"",");
-                    //カンマを書き込む
+                    //ヘッダー
+                    if (writeHeader) 
+                    {
+                        foreach (DataColumn column in dt.Columns)
+                        {
+                            csvWriter.WriteField(column.ColumnName);
+                        }
+                    }
+                    //データ部
+                    foreach (DataRow row in dt.Rows)
+                    {
+                        for (var i = 0; i < dt.Columns.Count; i++)
+                        {
+                            csvWriter.WriteField(row[i]);
+                        }
+                        csvWriter.NextRecord();
+                    }
                 }
-                //改行する
-                sb.Remove(sb.Length - 1, 1).ToString();
-                sb.AppendLine("");
+                return memoryStream.ToArray();
             }
-
-            //レコードを書き込む
-            foreach (DataRow row in dt.Rows)
-            {
-                for (int i = 0; i < colCount; i++)
-                {
-                    //フィールドの取得
-                    string field = row[i].ToString();
-                    //"で囲む
-                    field = EncloseDoubleQuotesIfNeed(field);
-                    //フィールドを書き込む
-                    sb.Append($@"""{field}"",");
-                }
-                //改行する
-                //改行する
-                sb.Remove(sb.Length - 1, 1).ToString();
-                sb.AppendLine("");
-            }
-
-            return sb.ToString();
         }
+        #endregion
 
+
+        #region Object → Csv File
         /// <summary>
-        /// 
+        /// Object → Csv File
         /// </summary>
-        /// <param name="dt"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="obj"></param>
         /// <param name="writeHeader"></param>
+        /// <param name="filePath"></param>
         public void ConvertObjToCsvFile<T>(List<T> obj, bool writeHeader, string filePath)
         {
             using (FileStream fs = File.Create(filePath))
@@ -140,13 +134,49 @@ namespace Commons.DataUtil
                 }
             }
         }
+        #endregion
 
+        #region Object → Csv Image
         /// <summary>
-        /// 
+        /// Object → Csv Image
         /// </summary>
-        /// <param name="dt"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="obj"></param>
         /// <param name="writeHeader"></param>
-        public List<T> ConvertCsvFileToCsv<T>(string filePath)
+        /// <returns></returns>
+        public byte[] ConvertObjToCsvImage<T>(List<T> obj, bool writeHeader)
+        {
+            using (var memoryStream = new MemoryStream())
+            {
+                using (var streamWriter = new StreamWriter(memoryStream))
+                using (var csvWriter = new CsvWriter(streamWriter, new CultureInfo("ja-JP", false)))
+                {
+                    //ヘッダー
+                    if (writeHeader)
+                    {
+                        csvWriter.WriteHeader<T>();
+                        csvWriter.NextRecord();
+                    }
+                    //データ部
+                    foreach (var t in obj)
+                    {
+                        csvWriter.WriteRecord(t);
+                        csvWriter.NextRecord();
+                    }
+                }
+                return memoryStream.ToArray();
+            }
+        }
+        #endregion
+
+        #region Csv File → Object
+        /// <summary>
+        /// Csv File → Object
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="filePath"></param>
+        /// <returns></returns>
+        public List<T> ConvertCsvFileToObject<T>(string filePath)
         {
             using (var reader = new StreamReader(filePath, Encoding.GetEncoding(this.Encode)))
             using (var csv = new CsvReader(reader, new CultureInfo("ja-JP", false)))
@@ -158,53 +188,7 @@ namespace Commons.DataUtil
                 return csv.GetRecords<T>().ToList();
             }
         }
+        #endregion
 
-
-        /// <summary>
-        /// 必要ならば、文字列をダブルクォートで囲む
-        /// </summary>
-        private string EncloseDoubleQuotesIfNeed(string field)
-        {
-            if (NeedEncloseDoubleQuotes(field))
-            {
-                return EncloseDoubleQuotes(field);
-            }
-            return field;
-        }
-
-        /// <summary>
-        /// 文字列をダブルクォートで囲む
-        /// </summary>
-        private string EncloseDoubleQuotes(string field)
-        {
-            if (field.IndexOf('"') > -1)
-            {
-                //"を""とする
-                field = field.Replace("\"", "\"\"");
-            }
-            return "\"" + field + "\"";
-        }
-
-        /// <summary>
-        /// 文字列をダブルクォートで囲む必要があるか調べる
-        /// </summary>
-        private bool NeedEncloseDoubleQuotes(string field)
-        {
-            return field.IndexOf('"') > -1 ||
-                field.IndexOf(',') > -1 ||
-                field.IndexOf('\r') > -1 ||
-                field.IndexOf('\n') > -1 ||
-                field.StartsWith(" ") ||
-                field.StartsWith("\t") ||
-                field.EndsWith(" ") ||
-                field.EndsWith("\t");
-        }
-
-        public void Main()
-        {
-            
-        }
     }
-
-    
 }

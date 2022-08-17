@@ -122,7 +122,7 @@ namespace CommonsNUnitTest
             var jo = JObject.Parse(jsonStudents);
 
             uCsv.ConvertDtToCsvFile(dt, true, @"C:\work\students11.csv");
-            List<Student> ss = uCsv.ConvertCsvFileToCsv<Student>(@"C:\work\students.csv");
+            List<Student> ss = uCsv.ConvertCsvFileToObject<Student>(@"C:\work\students.csv");
             uCsv.ConvertObjToCsvFile(ss, true, @"C:\work\students5.csv");
         }
 
