@@ -11,4 +11,11 @@ namespace CommonwWeb.Models
         public string FileType { get; set; }
 
     }
+
+    public class ImageSearchModel
+    {
+        [Required]
+        [StringLength(100)]
+        public string Iid { get; set; }
+    }
 }

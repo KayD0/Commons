@@ -50,8 +50,10 @@ namespace CommonwWeb.Controllers
         {
 
             //データベース読み取り
+            var request = HttpContext.Request;
+            int iid = int.Parse(request.Form["iid"].ToString());
             Hashtable ret = new Hashtable();
-            byte[] readImage = sMssql.ReadImage(2, ref ret);
+            byte[] readImage = sMssql.ReadImage(iid, ref ret);
             return File(readImage, ret["FiletContentType"].ToString(),ret["Name"].ToString());
         }
 
