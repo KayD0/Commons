@@ -101,7 +101,6 @@ namespace Commons.DataUtil
         }
         #endregion
 
-
         #region Object → Csv File
         /// <summary>
         /// Object → Csv File
