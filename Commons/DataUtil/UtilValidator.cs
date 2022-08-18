@@ -22,14 +22,22 @@ namespace Commons.DataUtil
         /// <summary>
         /// モデルのバリデーションを行う
         /// </summary>
-        /// <param name="extension"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="obj"></param>
         /// <returns></returns>
-        public static List<ValidationResult> GetContextType<T>(T obj) 
+        public static List<string> GetContextType<T>(T obj) 
         {
             var ctx = new ValidationContext(obj);
             var results = new List<ValidationResult>();
-            Validator.TryValidateObject(obj, ctx, results, true);
-            return results;
+            List<string> errorList = new List<string>();
+            if (!Validator.TryValidateObject(obj, ctx, results, true)) 
+            {
+                foreach (var result in results) 
+                {
+                    errorList.Add(result.ErrorMessage);
+                }
+            }
+            return errorList;
         }
         #endregion 
     }
