@@ -46,7 +46,8 @@ namespace CommonsNUnitTest
         [Test]
         public void test3()
         {
-            decimal a = 1;
+            DateTime a = 1;
+            
             var at = a.GetType().FullName;
         }
 
