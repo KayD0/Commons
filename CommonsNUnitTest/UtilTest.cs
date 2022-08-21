@@ -15,6 +15,8 @@ using System.Globalization;
 using CsvHelper;
 using CsvHelper.Configuration;
 using System.Linq;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace CommonsNUnitTest
 {
@@ -126,5 +128,10 @@ namespace CommonsNUnitTest
             uCsv.ConvertObjToCsvFile(ss, true, @"C:\work\students5.csv");
         }
 
+        [Test]
+        public void UtilLockTest()
+        {
+            
+        }
     }
 }

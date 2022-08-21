@@ -43,13 +43,13 @@ namespace CommonsNUnitTest
             //var select = test.Where(x => x.Age == 20);
         }
 
-        [Test]
-        public void test3()
-        {
-            DateTime a = 1;
+        //[Test]
+        //public void test3()
+        //{
+        //    DateTime a = 1;
             
-            var at = a.GetType().FullName;
-        }
+        //    var at = a.GetType().FullName;
+        //}
 
         public List<string> GetModelToInsertQuery<T>(List<T> objList) 
         {
