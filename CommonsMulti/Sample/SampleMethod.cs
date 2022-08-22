@@ -44,5 +44,14 @@ namespace CommonsMulti.Sample
             Console.WriteLine("すごく重い処理その2(´・ω・｀)おわり");
             return 2;
         }
+
+        public static void HeavyMethod6(IProgress<int> progress)
+        {
+            for (var i = 1; i < 100; i++)
+            {
+                Thread.Sleep(100);
+                progress.Report(i); // 進捗を報告
+            }
+        }
     }
 }

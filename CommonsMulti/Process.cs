@@ -24,5 +24,11 @@ namespace CommonsMulti
 
             s.task_wait_end();
         }
+
+        public void Main4()
+        {
+
+            _ = s.task_progressAsync();
+        }
     }
 }

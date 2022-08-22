@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using Commons.DataUtil.UtilJsonModel;
 using CsvHelper;
@@ -38,9 +40,34 @@ namespace Commons.DataUtil
             }
             return errorList;
         }
+        #endregion
+
+        #region モデルの入力値有無チェックを行う
+        /// <summary>
+        /// モデルの入力値有無チェックを行う
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public static bool IsExistConditon<T>(T obj)
+        {
+            bool isExist = false;
+            PropertyInfo[] props = obj.GetType().GetProperties();
+            foreach (PropertyInfo prop in props) 
+            {
+                string val = prop.GetValue(obj).ToString();
+                if (!string.IsNullOrEmpty(val)) 
+                {
+                    isExist = true;
+                    break;
+                }
+            }
+            return isExist;
+        }
         #endregion 
     }
 
+    #region バリデーションサンプルクラス
     //参考サイト
     //https://qiita.com/ktr1211/items/132e7216709c912917c6z
     //https://qiita.com/grrrr/items/7c8811b5cf37d700adc4
@@ -169,4 +196,5 @@ namespace Commons.DataUtil
         public string str5 { get; set; }
         #endregion 
     }
+    #endregion
 }

@@ -7,7 +7,7 @@ namespace CommonsMulti
         static void Main(string[] args)
         {
             Process process = new Process();
-            process.Main3();
+            process.Main4();
             Console.ReadLine();
         }
     }
