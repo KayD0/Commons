@@ -189,5 +189,44 @@ namespace Commons.DataUtil
         }
         #endregion
 
+        #region List<DataRow> → CSVイメージ（Byte[]）
+        /// <summary>
+        /// List<DataRow> → CSVイメージ（Byte[]）
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="obj"></param>
+        /// <param name="writeHeader"></param>
+        /// <returns></returns>
+        public byte[] ConvertRowListToCsvImage(List<DataRow> obj, bool writeHeader)
+        {
+            var head = obj.FirstOrDefault();
+            using (var memoryStream = new MemoryStream())
+            {
+                using (var streamWriter = new StreamWriter(memoryStream, Encoding.GetEncoding(this.Encode)))
+                using (var csvWriter = new CsvWriter(streamWriter, new CultureInfo("ja-JP", false)))
+                {
+                    //ヘッダー
+                    if (writeHeader)
+                    {
+                        foreach (DataColumn column in head.Table.Columns)
+                        {
+                            csvWriter.WriteField(column.ColumnName);
+                        }
+                        csvWriter.NextRecord();
+                    }
+                    //データ部
+                    foreach (var t in obj)
+                    {
+                        foreach (object ob in t.ItemArray)
+                        {
+                            csvWriter.WriteField(ob.ToString());
+                        }
+                        csvWriter.NextRecord();
+                    }
+                }
+                return memoryStream.ToArray();
+            }
+        }
+        #endregion
     }
 }
