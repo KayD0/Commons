@@ -17,6 +17,9 @@ using CsvHelper.Configuration;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
+using AutoMapper;
+using System.Net;
+using HtmlAgilityPack;
 
 namespace CommonsNUnitTest
 {
@@ -129,9 +132,56 @@ namespace CommonsNUnitTest
         }
 
         [Test]
-        public void UtilLockTest()
+        public void UtilMapper()
         {
-            
+            var config = new MapperConfiguration(cfg => {
+                cfg.CreateMap<Data1, DataDTO1>();
+            });
+
+            IMapper mapper = config.CreateMapper();
+            var source = new Data1();
+
+            source.ID = 1;
+            source.Name = "test";
+            source.Age = 29;
+
+            var dest = mapper.Map<Data1, DataDTO1>(source);
+
+        }
+
+        [Test]
+        public void UtilScrape()
+        {
+            WebClient wc = new WebClient();
+            string htmlStr = wc.DownloadString("https://happyhotel.jp/search/address/pref/13");
+            if (htmlStr != null)
+            {
+                var htmlDoc = new HtmlDocument();
+                htmlDoc.LoadHtml(htmlStr);
+                HtmlNodeCollection nodes = htmlDoc.DocumentNode.SelectNodes("/html/head/meta");
+                foreach (HtmlNode node in nodes)
+                {
+                    foreach (HtmlAttribute attr in node.Attributes)
+                    {
+                        Console.WriteLine(attr.Name + " " +attr.Value);
+                    }
+                }
+            }
+
         }
     }
+
+    public class Data1 {
+        public int ID { get; set; }
+        public string Name { get; set; }
+        public int Age { get; set; }
+    }
+    public class DataDTO1
+    {
+        public int ID { get; set; }
+        public string Name { get; set; }
+        public int Age { get; set; }
+    }
+
+    
 }

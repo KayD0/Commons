@@ -63,8 +63,15 @@ namespace Commons.DataUtil.ValidateExtension
 
             if (!string.IsNullOrEmpty(value.ToString()) && !string.IsNullOrEmpty(propertyValue.ToString()))
             {
-                DateTime from = DateTime.Parse(value.ToString());
-                DateTime to = DateTime.Parse(propertyValue.ToString());
+                DateTime from;
+                DateTime to;
+                bool retFrom = DateTime.TryParse(value.ToString(), out from);
+                bool retTo = DateTime.TryParse(value.ToString(), out to);
+                //日付変換が正常に行えればチェック
+                if (!retFrom || !retTo)
+                {
+                    return ValidationResult.Success;
+                }
                 // ここで値の比較。条件を満たしていれば検証成功を返す
                 if (from < to)
                 {

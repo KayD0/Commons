@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Commons.DataUtil.UtilSort
 {
-    public static class Sort
+    public static class QuickSort
     {
         /// <summary>
         /// クイックソート
