@@ -37,30 +37,38 @@ namespace Commons.DataUtil
         /// <param name="filePath"></param>
         public void ConvertDtToCsvFile(DataTable dt, bool writeHeader, string filePath)
         {
-            using (var textWriter = File.CreateText(filePath))
-            using (var csv = new CsvWriter(textWriter, new CultureInfo("ja-JP", false)))
+            try
             {
-                // Write columns
-                if (writeHeader) 
+                using (var textWriter = File.CreateText(filePath))
+                using (var csv = new CsvWriter(textWriter, new CultureInfo("ja-JP", false)))
                 {
-                    foreach (DataColumn column in dt.Columns)
+                    // Write columns
+                    if (writeHeader)
                     {
-                        csv.WriteField(column.ColumnName);
+                        foreach (DataColumn column in dt.Columns)
+                        {
+                            csv.WriteField(column.ColumnName);
+                        }
+                        csv.NextRecord();
                     }
-                    csv.NextRecord();
-                }
-                // Write row values
-                foreach (DataRow row in dt.Rows)
-                {
-                    for (var i = 0; i < dt.Columns.Count; i++)
+                    // Write row values
+                    foreach (DataRow row in dt.Rows)
                     {
-                        csv.WriteField(row[i]);
+                        for (var i = 0; i < dt.Columns.Count; i++)
+                        {
+                            csv.WriteField(row[i]);
+                        }
+                        csv.NextRecord();
                     }
-                    csv.NextRecord();
-                }
 
-                var test = csv.ToString();
+                    var test = csv.ToString();
+                }
             }
+            catch (Exception)
+            {
+                throw;
+            }
+            
         }
         #endregion
 
@@ -73,30 +81,37 @@ namespace Commons.DataUtil
         /// <returns></returns>
         public byte[] ConvertDtToCsvImage(DataTable dt, bool writeHeader)
         {
-            using (var memoryStream = new MemoryStream())
+            try
             {
-                using (var streamWriter = new StreamWriter(memoryStream))
-                using (var csvWriter = new CsvWriter(streamWriter, new CultureInfo("ja-JP", false)))
+                using (var memoryStream = new MemoryStream())
                 {
-                    //ヘッダー
-                    if (writeHeader) 
+                    using (var streamWriter = new StreamWriter(memoryStream))
+                    using (var csvWriter = new CsvWriter(streamWriter, new CultureInfo("ja-JP", false)))
                     {
-                        foreach (DataColumn column in dt.Columns)
+                        //ヘッダー
+                        if (writeHeader)
                         {
-                            csvWriter.WriteField(column.ColumnName);
+                            foreach (DataColumn column in dt.Columns)
+                            {
+                                csvWriter.WriteField(column.ColumnName);
+                            }
+                        }
+                        //データ部
+                        foreach (DataRow row in dt.Rows)
+                        {
+                            for (var i = 0; i < dt.Columns.Count; i++)
+                            {
+                                csvWriter.WriteField(row[i]);
+                            }
+                            csvWriter.NextRecord();
                         }
                     }
-                    //データ部
-                    foreach (DataRow row in dt.Rows)
-                    {
-                        for (var i = 0; i < dt.Columns.Count; i++)
-                        {
-                            csvWriter.WriteField(row[i]);
-                        }
-                        csvWriter.NextRecord();
-                    }
+                    return memoryStream.ToArray();
                 }
-                return memoryStream.ToArray();
+            }
+            catch (Exception)
+            {
+                throw;
             }
         }
         #endregion
@@ -111,26 +126,33 @@ namespace Commons.DataUtil
         /// <param name="filePath"></param>
         public void ConvertObjToCsvFile<T>(List<T> obj, bool writeHeader, string filePath)
         {
-            using (FileStream fs = File.Create(filePath))
+            try
             {
-                fs.Close();
-                fs.Dispose();
+                using (FileStream fs = File.Create(filePath))
+                {
+                    fs.Close();
+                    fs.Dispose();
+                }
+                using (var streamWriter = new StreamWriter(filePath))
+                using (var csv = new CsvWriter(streamWriter, new CultureInfo("ja-JP", false)))
+                {
+                    //ヘッダー
+                    if (writeHeader)
+                    {
+                        csv.WriteHeader<T>();
+                        csv.NextRecord();
+                    }
+                    //データ部
+                    foreach (var t in obj)
+                    {
+                        csv.WriteRecord(t);
+                        csv.NextRecord();
+                    }
+                }
             }
-            using (var streamWriter = new StreamWriter(filePath))
-            using (var csv = new CsvWriter(streamWriter, new CultureInfo("ja-JP", false)))
+            catch (Exception)
             {
-                //ヘッダー
-                if (writeHeader) 
-                {
-                    csv.WriteHeader<T>();
-                    csv.NextRecord();
-                }
-                //データ部
-                foreach (var t in obj)
-                {
-                    csv.WriteRecord(t);
-                    csv.NextRecord();
-                }
+                throw;
             }
         }
         #endregion
@@ -145,25 +167,32 @@ namespace Commons.DataUtil
         /// <returns></returns>
         public byte[] ConvertObjToCsvImage<T>(List<T> obj, bool writeHeader)
         {
-            using (var memoryStream = new MemoryStream())
+            try
             {
-                using (var streamWriter = new StreamWriter(memoryStream))
-                using (var csvWriter = new CsvWriter(streamWriter, new CultureInfo("ja-JP", false)))
+                using (var memoryStream = new MemoryStream())
                 {
-                    //ヘッダー
-                    if (writeHeader)
+                    using (var streamWriter = new StreamWriter(memoryStream))
+                    using (var csvWriter = new CsvWriter(streamWriter, new CultureInfo("ja-JP", false)))
                     {
-                        csvWriter.WriteHeader<T>();
-                        csvWriter.NextRecord();
+                        //ヘッダー
+                        if (writeHeader)
+                        {
+                            csvWriter.WriteHeader<T>();
+                            csvWriter.NextRecord();
+                        }
+                        //データ部
+                        foreach (var t in obj)
+                        {
+                            csvWriter.WriteRecord(t);
+                            csvWriter.NextRecord();
+                        }
                     }
-                    //データ部
-                    foreach (var t in obj)
-                    {
-                        csvWriter.WriteRecord(t);
-                        csvWriter.NextRecord();
-                    }
+                    return memoryStream.ToArray();
                 }
-                return memoryStream.ToArray();
+            }
+            catch (Exception)
+            {
+                throw;
             }
         }
         #endregion
@@ -177,14 +206,21 @@ namespace Commons.DataUtil
         /// <returns></returns>
         public List<T> ConvertCsvFileToObject<T>(string filePath)
         {
-            using (var reader = new StreamReader(filePath, Encoding.GetEncoding(this.Encode)))
-            using (var csv = new CsvReader(reader, new CultureInfo("ja-JP", false)))
+            try
             {
-                //csv.Configuration.HasHeaderRecord = false;
-                //csv.Configuration.Delimiter = ",";
-                //csv.Configuration.IgnoreBlankLines = true;
+                using (var reader = new StreamReader(filePath, Encoding.GetEncoding(this.Encode)))
+                using (var csv = new CsvReader(reader, new CultureInfo("ja-JP", false)))
+                {
+                    //csv.Configuration.HasHeaderRecord = false;
+                    //csv.Configuration.Delimiter = ",";
+                    //csv.Configuration.IgnoreBlankLines = true;
 
-                return csv.GetRecords<T>().ToList();
+                    return csv.GetRecords<T>().ToList();
+                }
+            }
+            catch (Exception)
+            {
+                throw;
             }
         }
         #endregion
@@ -199,32 +235,39 @@ namespace Commons.DataUtil
         /// <returns></returns>
         public byte[] ConvertRowListToCsvImage(List<DataRow> obj, bool writeHeader)
         {
-            var head = obj.FirstOrDefault();
-            using (var memoryStream = new MemoryStream())
+            try
             {
-                using (var streamWriter = new StreamWriter(memoryStream, Encoding.GetEncoding(this.Encode)))
-                using (var csvWriter = new CsvWriter(streamWriter, new CultureInfo("ja-JP", false)))
+                var head = obj.FirstOrDefault();
+                using (var memoryStream = new MemoryStream())
                 {
-                    //ヘッダー
-                    if (writeHeader)
+                    using (var streamWriter = new StreamWriter(memoryStream, Encoding.GetEncoding(this.Encode)))
+                    using (var csvWriter = new CsvWriter(streamWriter, new CultureInfo("ja-JP", false)))
                     {
-                        foreach (DataColumn column in head.Table.Columns)
+                        //ヘッダー
+                        if (writeHeader)
                         {
-                            csvWriter.WriteField(column.ColumnName);
+                            foreach (DataColumn column in head.Table.Columns)
+                            {
+                                csvWriter.WriteField(column.ColumnName);
+                            }
+                            csvWriter.NextRecord();
                         }
-                        csvWriter.NextRecord();
-                    }
-                    //データ部
-                    foreach (var t in obj)
-                    {
-                        foreach (object ob in t.ItemArray)
+                        //データ部
+                        foreach (var t in obj)
                         {
-                            csvWriter.WriteField(ob.ToString());
+                            foreach (object ob in t.ItemArray)
+                            {
+                                csvWriter.WriteField(ob.ToString());
+                            }
+                            csvWriter.NextRecord();
                         }
-                        csvWriter.NextRecord();
                     }
+                    return memoryStream.ToArray();
                 }
-                return memoryStream.ToArray();
+            }
+            catch (Exception)
+            {
+                throw;
             }
         }
         #endregion

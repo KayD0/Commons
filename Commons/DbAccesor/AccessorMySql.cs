@@ -13,13 +13,13 @@ using Commons.DbAccessor.Parameters;
 
 namespace Common.DbAccessor
 {
-    public class AccessorMySql : IAccessor, IDisposable
+    public class AccessorMySql : IDisposable
     {
         /// <summary>
         /// 接続情報
         /// </summary>
         private readonly MySqlConnection conn;
-        
+
         /// <summary>
         /// コンストラクタ
         /// </summary>
@@ -41,7 +41,7 @@ namespace Common.DbAccessor
         /// <summary>
         /// 切断とインスタンスの破棄
         /// </summary>
-        public override void Close()
+        public  void Close()
         {
             this.conn.Close();
             this.conn.Dispose();
@@ -51,224 +51,211 @@ namespace Common.DbAccessor
         /// プロシージャの実行処理
         /// </summary>
         /// <param name="packageName"></param>
-        /// <param name="paramList"></param>
-        /// <returns></returns>
-        public override bool ExecuteProcedure(string packageName,ref List<DbParamerter> paramList)
+        /// <param name="dbParams"></param>
+        public void ExecuteProcedure(string packageName, Dictionary<string, object> dbParams)
         {
-            bool result = true;
-
-            //コマンドを生成する
             using (MySqlCommand command = new MySqlCommand(packageName, this.conn))
             {
-                //接続
                 try
                 {
-                    LoggerBase.logger.Info("[ProcessId:{0}] [パッケージコマンド実行処理] 開始", LoggerBase.ProcessId);
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 開始", LoggerBase.ProcessId);
-                    command.Connection.Open();
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 成功", LoggerBase.ProcessId);
-
+                    if (command.Connection.State != ConnectionState.Open)
+                    {
+                        command.Connection.Open();
+                    }
 
                     using (MySqlTransaction transaction = command.Connection.BeginTransaction(IsolationLevel.ReadCommitted))
                     {
                         //引数設定
                         command.Transaction = transaction;
                         command.CommandType = CommandType.StoredProcedure;
-                        foreach (DbParamerter para in paramList)
+                        foreach (var param in dbParams)
                         {
-                            command.Parameters.Add(para.Name, para.DbTypeMysql, para.Size);
+                            command.Parameters.AddWithValue(param.Key, param.Value);
                         }
 
                         //ストアドを実行する
-                        LoggerBase.logger.Info("[ProcessId:{0}] [コマンド実行] 開始", LoggerBase.ProcessId);
                         command.ExecuteNonQuery();
                         transaction.Commit();
-                        LoggerBase.logger.Info("[ProcessId:{0}] [コマンド実行] 成功", LoggerBase.ProcessId);
                     }
 
                 }
                 catch (MySqlException e)
                 {
-                    LoggerBase.logger.Fatal("[ProcessId:{0}] [パッケージコマンド実行処理] 異常終了", LoggerBase.ProcessId);
-                    LoggerBase.logger.Fatal(e.ToString());
-                    result = false;
-                }
-                finally 
-                {
-                    command.Connection.Close();
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 終了", LoggerBase.ProcessId);
-                    LoggerBase.logger.Info("[ProcessId:{0}] [パッケージコマンド実行処理] 終了", LoggerBase.ProcessId);
-                }
-            }
-            return result;
-        }
-
-        /// <summary>
-        /// SQL実行処理
-        /// </summary>
-        /// <param name="tableName"></param>
-        /// <param name="dataset"></param>
-        /// <param name="commandSql"></param>
-        /// <param name="paramList"></param>
-        /// <returns></returns>
-        public override bool ExecuteQuery(string tableName, ref DataSet dataset, string commandSql, List<DbParamerter> paramList)
-        {
-            bool result = true;
-            using (MySqlCommand command = new MySqlCommand(commandSql, this.conn))
-            {
-
-                //接続
-                try
-                {
-                    LoggerBase.logger.Info("[ProcessId:{0}] [SQLコマンド実行処理] 開始", LoggerBase.ProcessId);
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 開始", LoggerBase.ProcessId);
-                    command.Connection.Open();
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 成功", LoggerBase.ProcessId);
-
-                    //パラメタ,コマンドタイプ定義
-                    command.CommandType = CommandType.Text;
-                    foreach (DbParamerter para in paramList)
-                    {
-                        command.Parameters.Add(para.Name,para.DbTypeMysql,para.Size);
-                    }
-
-                    //コマンド実行
-                    using (MySqlDataAdapter adapter = new MySqlDataAdapter(command))
-                    {
-                        LoggerBase.logger.Info("[ProcessId:{0}] [コマンド実行] 開始", LoggerBase.ProcessId);
-                        MySqlCommandBuilder builder = new MySqlCommandBuilder(adapter);
-                        adapter.Fill(dataset, tableName);
-                        LoggerBase.logger.Info("[ProcessId:{0}] [コマンド実行] 成功", LoggerBase.ProcessId);
-                    }
-
-                }
-                catch (MySqlException e)
-                {
-                    LoggerBase.logger.Fatal("[ProcessId:{0}] [SQLコマンド実行処理] 異常終了", LoggerBase.ProcessId);
-                    LoggerBase.logger.Fatal(e.ToString());
-                    result = false;
+                    throw;
                 }
                 finally
                 {
                     command.Connection.Close();
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 終了", LoggerBase.ProcessId);
-                    LoggerBase.logger.Info("[ProcessId:{0}] [SQLコマンド実行処理] 終了", LoggerBase.ProcessId);
-
                 }
             }
-            return result;
         }
 
         /// <summary>
         /// SQL実行処理
         /// </summary>
-        /// <param name="tableName"></param>
-        /// <param name="dataset"></param>
         /// <param name="commandSql"></param>
-        /// <param name="paramList"></param>
+        /// <param name="dbParams"></param>
         /// <returns></returns>
-        public override bool ExecuteQuery(ref DataTable datatable, string commandSql, List<DbParamerter> paramList)
+        public DataSet ExecuteQueryDs(string commandSql, Dictionary<string, object> dbParams)
         {
-            bool result = true;
             using (MySqlCommand command = new MySqlCommand(commandSql, this.conn))
             {
-
-                //接続
                 try
                 {
-                    LoggerBase.logger.Info("[ProcessId:{0}] [SQLコマンド実行処理] 開始", LoggerBase.ProcessId);
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 開始", LoggerBase.ProcessId);
-                    command.Connection.Open();
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 成功", LoggerBase.ProcessId);
-
-                    //パラメタ,コマンドタイプ定義
-                    command.CommandType = CommandType.Text;
-                    foreach (DbParamerter para in paramList)
+                    if (command.Connection.State != ConnectionState.Open)
                     {
-                        command.Parameters.Add(para.Name, para.DbTypeMysql, para.Size);
+                        command.Connection.Open();
+                    }
+
+                    command.CommandType = CommandType.Text;
+                    foreach (var param in dbParams)
+                    {
+                        command.Parameters.AddWithValue(param.Key, param.Value);
                     }
 
                     //コマンド実行
+                    DataSet ds = new DataSet();
                     using (MySqlDataAdapter adapter = new MySqlDataAdapter(command))
                     {
-                        LoggerBase.logger.Info("[ProcessId:{0}] [コマンド実行] 開始", LoggerBase.ProcessId);
                         MySqlCommandBuilder builder = new MySqlCommandBuilder(adapter);
-                        adapter.Fill(datatable);
-                        LoggerBase.logger.Info("[ProcessId:{0}] [コマンド実行] 成功", LoggerBase.ProcessId);
+                        adapter.Fill(ds);
+                    }
+                    return ds;
+                }
+                catch (MySqlException e)
+                {
+                    throw;
+                }
+                finally
+                {
+                    command.Connection.Close();
+                }
+            }
+        }
+
+        /// <summary>
+        /// SQL実行処理
+        /// </summary>
+        /// <param name="commandSql"></param>
+        /// <param name="dbParams"></param>
+        /// <returns></returns>
+        public DataTable ExecuteQueryDt(string commandSql, Dictionary<string, object> dbParams)
+        {
+            using (MySqlCommand command = new MySqlCommand(commandSql, this.conn))
+            {
+                try
+                {
+                    if (command.Connection.State != ConnectionState.Open)
+                    {
+                        command.Connection.Open();
+                    }
+
+                    command.CommandType = CommandType.Text;
+                    foreach (var param in dbParams)
+                    {
+                        command.Parameters.AddWithValue(param.Key, param.Value);
+                    }
+
+                    DataTable dt = new DataTable();
+                    using (MySqlDataAdapter adapter = new MySqlDataAdapter(command))
+                    {
+                        MySqlCommandBuilder builder = new MySqlCommandBuilder(adapter);
+                        adapter.Fill(dt);
+                    }
+                    return dt;
+                }
+                catch (MySqlException e)
+                {
+                    throw;
+                }
+                finally
+                {
+                    command.Connection.Close();
+                }
+            }
+        }
+
+        /// <summary>
+        /// SQL実行処理
+        /// </summary>
+        /// <param name="commandSql"></param>
+        /// <param name="dbParams"></param>
+        public void ExecuteQueryStored(string commandSql, Dictionary<string, object> dbParams)
+        {
+            using (MySqlCommand command = new MySqlCommand(commandSql, this.conn))
+            {
+                try
+                {
+                    if (command.Connection.State != ConnectionState.Open)
+                    {
+                        command.Connection.Open();
+                    }
+
+                    command.CommandType = CommandType.Text;
+                    foreach (var param in dbParams)
+                    {
+                        command.Parameters.AddWithValue(param.Key, param.Value);
+                    }
+
+                    using (MySqlTransaction transaction = command.Connection.BeginTransaction(IsolationLevel.ReadCommitted))
+                    {
+                        command.ExecuteNonQuery();
+                        transaction.Commit();
                     }
 
                 }
                 catch (MySqlException e)
                 {
-                    LoggerBase.logger.Fatal("[ProcessId:{0}] [SQLコマンド実行処理] 異常終了", LoggerBase.ProcessId);
-                    LoggerBase.logger.Fatal(e.ToString());
-                    result = false;
+                    throw;
                 }
                 finally
                 {
                     command.Connection.Close();
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 終了", LoggerBase.ProcessId);
-                    LoggerBase.logger.Info("[ProcessId:{0}] [SQLコマンド実行処理] 終了", LoggerBase.ProcessId);
-
                 }
             }
-            return result;
         }
 
         /// <summary>
         /// SQL実行処理
         /// </summary>
-        /// <param name="tableName"></param>
-        /// <param name="dataset"></param>
         /// <param name="commandSql"></param>
-        /// <param name="paramList"></param>
+        /// <param name="dbParams"></param>
         /// <returns></returns>
-        public override bool ExecuteQueryForScalar(ref object obj, string commandSql, List<DbParamerter> paramList)
+        public object ExecuteQueryForScalar(string commandSql, Dictionary<string, object> dbParams)
         {
-            bool result = true;
             using (MySqlCommand command = new MySqlCommand(commandSql, this.conn))
             {
-
                 //接続
                 try
                 {
-                    LoggerBase.logger.Info("[ProcessId:{0}] [SQLコマンド実行処理] 開始", LoggerBase.ProcessId);
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 開始", LoggerBase.ProcessId);
-                    command.Connection.Open();
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 成功", LoggerBase.ProcessId);
-
-                    //パラメタ,コマンドタイプ定義
-                    command.CommandType = CommandType.Text;
-                    foreach (DbParamerter para in paramList)
+                    object obj = new object();
+                    if (command.Connection.State != ConnectionState.Open)
                     {
-                        command.Parameters.Add(para.Name, para.DbTypeMysql, para.Size);
+                        command.Connection.Open();
                     }
 
-                    //コマンド実行
+                    command.CommandType = CommandType.Text;
+                    foreach (var param in dbParams)
+                    {
+                        command.Parameters.AddWithValue(param.Key, param.Value);
+                    }
+
                     using (MySqlDataAdapter adapter = new MySqlDataAdapter(command))
                     {
-                        LoggerBase.logger.Info("[ProcessId:{0}] [コマンド実行] 開始", LoggerBase.ProcessId);
                         MySqlCommandBuilder builder = new MySqlCommandBuilder(adapter);
                         obj = command.ExecuteScalar();
-                        LoggerBase.logger.Info("[ProcessId:{0}] [コマンド実行] 成功", LoggerBase.ProcessId);
                     }
-
+                    return obj;
                 }
                 catch (MySqlException e)
                 {
-                    LoggerBase.logger.Fatal("[ProcessId:{0}] [SQLコマンド実行処理] 異常終了", LoggerBase.ProcessId);
-                    LoggerBase.logger.Fatal(e.ToString());
-                    result = false;
+                    throw;
                 }
                 finally
                 {
                     command.Connection.Close();
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 終了", LoggerBase.ProcessId);
-                    LoggerBase.logger.Info("[ProcessId:{0}] [SQLコマンド実行処理] 終了", LoggerBase.ProcessId);
-
                 }
             }
-            return result;
         }
     }
 }

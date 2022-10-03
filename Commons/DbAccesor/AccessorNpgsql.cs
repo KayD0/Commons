@@ -10,16 +10,17 @@ using Commons;
 using Commons.DbAccessor;
 using Commons.DbAccessor.Parameters;
 using Npgsql;
+using MySql.Data.MySqlClient;
 
 namespace Commons.DbAccessor
 {
-    public class AccessorNpgsql : IAccessor, IDisposable
+    public class AccessorNpgsql : IDisposable
     {
         /// <summary>
         /// O接続情報
         /// </summary>
         private readonly NpgsqlConnection conn;
-        
+
         /// <summary>
         /// コンストラクタ
         /// </summary>
@@ -41,7 +42,7 @@ namespace Commons.DbAccessor
         /// <summary>
         /// 切断とインスタンスの破棄
         /// </summary>
-        public override void Close()
+        public void Close()
         {
             this.conn.Close();
             this.conn.Dispose();
@@ -51,224 +52,208 @@ namespace Commons.DbAccessor
         /// プロシージャの実行処理
         /// </summary>
         /// <param name="packageName"></param>
-        /// <param name="paramList"></param>
-        /// <returns></returns>
-        public override bool ExecuteProcedure(string packageName,ref List<DbParamerter> paramList)
+        /// <param name="dbParams"></param>
+        public void ExecuteProcedure(string packageName, Dictionary<string, object> dbParams)
         {
-            bool result = true;
-
-            //コマンドを生成する
             using (NpgsqlCommand command = new NpgsqlCommand(packageName, this.conn))
             {
-                //接続
                 try
                 {
-                    LoggerBase.logger.Info("[ProcessId:{0}] [パッケージコマンド実行処理] 開始", LoggerBase.ProcessId);
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 開始", LoggerBase.ProcessId);
-                    command.Connection.Open();
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 成功", LoggerBase.ProcessId);
-
+                    if (command.Connection.State != ConnectionState.Open)
+                    {
+                        command.Connection.Open();
+                    }
 
                     using (NpgsqlTransaction transaction = command.Connection.BeginTransaction(IsolationLevel.ReadCommitted))
                     {
-                        //引数設定
                         command.Transaction = transaction;
                         command.CommandType = CommandType.StoredProcedure;
-                        foreach (DbParamerter para in paramList)
+                        foreach (var param in dbParams)
                         {
-                            command.Parameters.Add(para.Name, para.DbTypeNpgsql, para.Size);
+                            command.Parameters.AddWithValue(param.Key, param.Value);
                         }
 
-                        //ストアドを実行する
-                        LoggerBase.logger.Info("[ProcessId:{0}] [コマンド実行] 開始", LoggerBase.ProcessId);
                         command.ExecuteNonQuery();
                         transaction.Commit();
-                        LoggerBase.logger.Info("[ProcessId:{0}] [コマンド実行] 成功", LoggerBase.ProcessId);
                     }
 
                 }
                 catch (NpgsqlException e)
                 {
-                    LoggerBase.logger.Fatal("[ProcessId:{0}] [パッケージコマンド実行処理] 異常終了", LoggerBase.ProcessId);
-                    LoggerBase.logger.Fatal(e.ToString());
-                    result = false;
-                }
-                finally 
-                {
-                    command.Connection.Close();
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 終了", LoggerBase.ProcessId);
-                    LoggerBase.logger.Info("[ProcessId:{0}] [パッケージコマンド実行処理] 終了", LoggerBase.ProcessId);
-                }
-            }
-            return result;
-        }
-
-        /// <summary>
-        /// SQL実行処理
-        /// </summary>
-        /// <param name="tableName"></param>
-        /// <param name="dataset"></param>
-        /// <param name="commandSql"></param>
-        /// <param name="paramList"></param>
-        /// <returns></returns>
-        public override bool ExecuteQuery(string tableName, ref DataSet dataset, string commandSql, List<DbParamerter> paramList)
-        {
-            bool result = true;
-            using (NpgsqlCommand command = new NpgsqlCommand(commandSql, this.conn))
-            {
-
-                //接続
-                try
-                {
-                    LoggerBase.logger.Info("[ProcessId:{0}] [SQLコマンド実行処理] 開始", LoggerBase.ProcessId);
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 開始", LoggerBase.ProcessId);
-                    command.Connection.Open();
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 成功", LoggerBase.ProcessId);
-
-                    //パラメタ,コマンドタイプ定義
-                    command.CommandType = CommandType.Text;
-                    foreach (DbParamerter para in paramList)
-                    {
-                        command.Parameters.Add(para.Name,para.DbTypeNpgsql,para.Size);
-                    }
-
-                    //コマンド実行
-                    using (NpgsqlDataAdapter adapter = new NpgsqlDataAdapter(command))
-                    {
-                        LoggerBase.logger.Info("[ProcessId:{0}] [コマンド実行] 開始", LoggerBase.ProcessId);
-                        NpgsqlCommandBuilder builder = new NpgsqlCommandBuilder(adapter);
-                        adapter.Fill(dataset, tableName);
-                        LoggerBase.logger.Info("[ProcessId:{0}] [コマンド実行] 成功", LoggerBase.ProcessId);
-                    }
-
-                }
-                catch (NpgsqlException e)
-                {
-                    LoggerBase.logger.Fatal("[ProcessId:{0}] [SQLコマンド実行処理] 異常終了", LoggerBase.ProcessId);
-                    LoggerBase.logger.Fatal(e.ToString());
-                    result = false;
+                    throw;
                 }
                 finally
                 {
                     command.Connection.Close();
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 終了", LoggerBase.ProcessId);
-                    LoggerBase.logger.Info("[ProcessId:{0}] [SQLコマンド実行処理] 終了", LoggerBase.ProcessId);
-
                 }
             }
-            return result;
         }
 
         /// <summary>
         /// SQL実行処理
         /// </summary>
-        /// <param name="tableName"></param>
-        /// <param name="dataset"></param>
         /// <param name="commandSql"></param>
-        /// <param name="paramList"></param>
+        /// <param name="dbParams"></param>
         /// <returns></returns>
-        public override bool ExecuteQuery(ref DataTable datatable, string commandSql, List<DbParamerter> paramList)
+        public DataSet ExecuteQueryDs(string commandSql, Dictionary<string, object> dbParams)
         {
-            bool result = true;
             using (NpgsqlCommand command = new NpgsqlCommand(commandSql, this.conn))
             {
-
-                //接続
                 try
                 {
-                    LoggerBase.logger.Info("[ProcessId:{0}] [SQLコマンド実行処理] 開始", LoggerBase.ProcessId);
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 開始", LoggerBase.ProcessId);
-                    command.Connection.Open();
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 成功", LoggerBase.ProcessId);
-
-                    //パラメタ,コマンドタイプ定義
-                    command.CommandType = CommandType.Text;
-                    foreach (DbParamerter para in paramList)
+                    if (command.Connection.State != ConnectionState.Open)
                     {
-                        command.Parameters.Add(para.Name, para.DbTypeNpgsql, para.Size);
+                        command.Connection.Open();
                     }
 
-                    //コマンド実行
+                    command.CommandType = CommandType.Text;
+                    foreach (var param in dbParams)
+                    {
+                        command.Parameters.AddWithValue(param.Key, param.Value);
+                    }
+
+                    DataSet ds = new DataSet();
                     using (NpgsqlDataAdapter adapter = new NpgsqlDataAdapter(command))
                     {
-                        LoggerBase.logger.Info("[ProcessId:{0}] [コマンド実行] 開始", LoggerBase.ProcessId);
                         NpgsqlCommandBuilder builder = new NpgsqlCommandBuilder(adapter);
-                        adapter.Fill(datatable);
-                        LoggerBase.logger.Info("[ProcessId:{0}] [コマンド実行] 成功", LoggerBase.ProcessId);
+                        adapter.Fill(ds);
+                    }
+                    return ds;
+                }
+                catch (NpgsqlException e)
+                {
+                    throw;
+                }
+                finally
+                {
+                    command.Connection.Close();
+                }
+            }
+        }
+
+        /// <summary>
+        /// SQL実行処理
+        /// </summary>
+        /// <param name="commandSql"></param>
+        /// <param name="dbParams"></param>
+        /// <returns></returns>
+        public DataTable ExecuteQueryDt(string commandSql, Dictionary<string, object> dbParams)
+        {
+            using (NpgsqlCommand command = new NpgsqlCommand(commandSql, this.conn))
+            {
+                try
+                {
+                    if (command.Connection.State != ConnectionState.Open)
+                    {
+                        command.Connection.Open();
+                    }
+
+                    command.CommandType = CommandType.Text;
+                    foreach (var param in dbParams)
+                    {
+                        command.Parameters.AddWithValue(param.Key, param.Value);
+                    }
+
+                    DataTable dt = new DataTable();
+                    using (NpgsqlDataAdapter adapter = new NpgsqlDataAdapter(command))
+                    {
+                        NpgsqlCommandBuilder builder = new NpgsqlCommandBuilder(adapter);
+                        adapter.Fill(dt);
+                    }
+                    return dt;
+                }
+                catch (NpgsqlException e)
+                {
+                    throw;
+                }
+                finally
+                {
+                    command.Connection.Close();
+                }
+            }
+        }
+
+        /// <summary>
+        /// SQL実行処理
+        /// </summary>
+        /// <param name="commandSql"></param>
+        /// <param name="dbParams"></param>
+        public void ExecuteQueryStored(string commandSql, Dictionary<string, object> dbParams)
+        {
+            using (NpgsqlCommand command = new NpgsqlCommand(commandSql, this.conn))
+            {
+                try
+                {
+                    if (command.Connection.State != ConnectionState.Open)
+                    {
+                        command.Connection.Open();
+                    }
+
+                    command.CommandType = CommandType.Text;
+                    foreach (var param in dbParams)
+                    {
+                        command.Parameters.AddWithValue(param.Key, param.Value);
+                    }
+
+                    using (NpgsqlTransaction transaction = command.Connection.BeginTransaction(IsolationLevel.ReadCommitted))
+                    {
+                        command.ExecuteNonQuery();
+                        transaction.Commit();
                     }
 
                 }
                 catch (NpgsqlException e)
                 {
-                    LoggerBase.logger.Fatal("[ProcessId:{0}] [SQLコマンド実行処理] 異常終了", LoggerBase.ProcessId);
-                    LoggerBase.logger.Fatal(e.ToString());
-                    result = false;
+                    throw;
                 }
                 finally
                 {
                     command.Connection.Close();
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 終了", LoggerBase.ProcessId);
-                    LoggerBase.logger.Info("[ProcessId:{0}] [SQLコマンド実行処理] 終了", LoggerBase.ProcessId);
-
                 }
             }
-            return result;
         }
 
         /// <summary>
         /// SQL実行処理
         /// </summary>
-        /// <param name="tableName"></param>
-        /// <param name="dataset"></param>
         /// <param name="commandSql"></param>
-        /// <param name="paramList"></param>
+        /// <param name="dbParams"></param>
         /// <returns></returns>
-        public override bool ExecuteQueryForScalar(ref object obj, string commandSql, List<DbParamerter> paramList)
+        public object ExecuteQueryForScalar(string commandSql, Dictionary<string, object> dbParams)
         {
-            bool result = true;
             using (NpgsqlCommand command = new NpgsqlCommand(commandSql, this.conn))
             {
-
                 //接続
                 try
                 {
-                    LoggerBase.logger.Info("[ProcessId:{0}] [SQLコマンド実行処理] 開始", LoggerBase.ProcessId);
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 開始", LoggerBase.ProcessId);
-                    command.Connection.Open();
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 成功", LoggerBase.ProcessId);
-
-                    //パラメタ,コマンドタイプ定義
-                    command.CommandType = CommandType.Text;
-                    foreach (DbParamerter para in paramList)
+                    object obj = new object();
+                    if (command.Connection.State != ConnectionState.Open)
                     {
-                        command.Parameters.Add(para.Name, para.DbTypeNpgsql, para.Size);
+                        command.Connection.Open();
                     }
 
-                    //コマンド実行
+                    command.CommandType = CommandType.Text;
+                    foreach (var param in dbParams)
+                    {
+                        command.Parameters.AddWithValue(param.Key, param.Value);
+                    }
+
                     using (NpgsqlDataAdapter adapter = new NpgsqlDataAdapter(command))
                     {
-                        LoggerBase.logger.Info("[ProcessId:{0}] [コマンド実行] 開始", LoggerBase.ProcessId);
                         NpgsqlCommandBuilder builder = new NpgsqlCommandBuilder(adapter);
                         obj = command.ExecuteScalar();
-                        LoggerBase.logger.Info("[ProcessId:{0}] [コマンド実行] 成功", LoggerBase.ProcessId);
                     }
-
+                    return obj;
                 }
                 catch (NpgsqlException e)
                 {
-                    LoggerBase.logger.Fatal("[ProcessId:{0}] [SQLコマンド実行処理] 異常終了", LoggerBase.ProcessId);
-                    LoggerBase.logger.Fatal(e.ToString());
-                    result = false;
+                    throw;
                 }
                 finally
                 {
                     command.Connection.Close();
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 終了", LoggerBase.ProcessId);
-                    LoggerBase.logger.Info("[ProcessId:{0}] [SQLコマンド実行処理] 終了", LoggerBase.ProcessId);
-
                 }
             }
-            return result;
         }
     }
 }

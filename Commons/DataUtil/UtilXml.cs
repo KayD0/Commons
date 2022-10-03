@@ -12,7 +12,7 @@ namespace Commons.DataUtil
 {
 
     public class UtilXml : UtilStream
-    {
+    {   
         #region コンストラクタ
         /// <summary>
         /// コンストラクタ
@@ -31,19 +31,29 @@ namespace Commons.DataUtil
         /// <returns></returns>
         public T ConverStringToXmlObj<T>(string str)
         {
-            //XmlSerializerオブジェクトを作成
-            System.Xml.Serialization.XmlSerializer serializer =
-                new System.Xml.Serialization.XmlSerializer(typeof(T));
-            //文字列を読込
-            var sr = this.ConvertStringToStream(str);
-            //XMLファイルから読み込み、逆シリアル化する
-            T obj = (T)serializer.Deserialize(sr);
-            //ファイルを閉じる
-            sr.Close();
-            sr.Dispose();
+            try
+            {
+                //XmlSerializerオブジェクトを作成
+                System.Xml.Serialization.XmlSerializer serializer =
+                    new System.Xml.Serialization.XmlSerializer(typeof(T));
+                
+                //文字列を読込
+                Encoding encoding = Encoding.GetEncoding("UTF-8");
+                var sr = new MemoryStream(encoding.GetBytes(str));
 
-            //返却
-            return obj;
+                //XMLファイルから読み込み、逆シリアル化する
+                T obj = (T)serializer.Deserialize(sr);
+                //ファイルを閉じる
+                sr.Close();
+                sr.Dispose();
+
+                //返却
+                return obj;
+            }
+            catch (Exception) 
+            {
+                throw;
+            }
         }
         #endregion
 
@@ -56,18 +66,25 @@ namespace Commons.DataUtil
         /// <returns></returns>
         public T ConvertFileToXmlObj<T>(string filePath)
         {
-            //XmlSerializerオブジェクトを作成
-            System.Xml.Serialization.XmlSerializer serializer =
-                new System.Xml.Serialization.XmlSerializer(typeof(T));
-            //ファイルを読込
-            Encoding encoding = Encoding.GetEncoding(this.Encode);
-            StreamReader sr = new StreamReader(filePath, encoding);
-            //XMLファイルから読み込み、逆シリアル化する
-            T obj = (T)serializer.Deserialize(sr);
-            //ファイルを閉じる
-            sr.Close();
-            //返却
-            return obj;
+            try
+            {
+                //XmlSerializerオブジェクトを作成
+                System.Xml.Serialization.XmlSerializer serializer =
+                    new System.Xml.Serialization.XmlSerializer(typeof(T));
+                //ファイルを読込
+                Encoding encoding = Encoding.GetEncoding(this.Encode);
+                StreamReader sr = new StreamReader(filePath, encoding);
+                //XMLファイルから読み込み、逆シリアル化する
+                T obj = (T)serializer.Deserialize(sr);
+                //ファイルを閉じる
+                sr.Close();
+                //返却
+                return obj;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
         #endregion
 
@@ -79,11 +96,18 @@ namespace Commons.DataUtil
         /// <returns></returns>
         public string ConvertObjToXmlStr<T>(T obj)
         {
-            using (var stringwriter = new System.IO.StringWriter())
+            try
             {
-                var serializer = new XmlSerializer(obj.GetType());
-                serializer.Serialize(stringwriter, obj);
-                return stringwriter.ToString();
+                using (var stringwriter = new System.IO.StringWriter())
+                {
+                    var serializer = new XmlSerializer(obj.GetType());
+                    serializer.Serialize(stringwriter, obj);
+                    return stringwriter.ToString();
+                }
+            }
+            catch (Exception)
+            {
+                throw;
             }
         }
         #endregion
@@ -97,11 +121,18 @@ namespace Commons.DataUtil
         /// <param name="filePath"></param>
         public void ConvertObjToXmlFile<T>(T obj, string filePath)
         {
-            var serializer = new XmlSerializer(obj.GetType());
-            Encoding encoding = Encoding.GetEncoding(this.Encode);
-            using (StreamWriter sw = new StreamWriter(filePath, false, encoding))
+            try
             {
-                serializer.Serialize(sw, obj);
+                var serializer = new XmlSerializer(obj.GetType());
+                Encoding encoding = Encoding.GetEncoding(this.Encode);
+                using (StreamWriter sw = new StreamWriter(filePath, false, encoding))
+                {
+                    serializer.Serialize(sw, obj);
+                }
+            }
+            catch (Exception)
+            {
+                throw;
             }
         }
         #endregion

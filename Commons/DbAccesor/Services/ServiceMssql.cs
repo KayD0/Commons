@@ -1,141 +1,141 @@
-﻿using Commons.DbAccessor;
-using Commons.DbAccessor.Parameters;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Data;
-using System.Text;
+﻿//using Commons.DbAccessor;
+//using Commons.DbAccessor.Parameters;
+//using Newtonsoft.Json;
+//using Newtonsoft.Json.Linq;
+//using System;
+//using System.Collections;
+//using System.Collections.Generic;
+//using System.Data;
+//using System.Text;
 
-namespace Commons.DbAccesor.Services
-{
-    public class ServiceMssql
-    {
-        private AccessorMssql mssql = new AccessorMssql();
+//namespace Commons.DbAccesor.Services
+//{
+//    public class ServiceMssql
+//    {
+//        private AccessorMssql mssql = new AccessorMssql();
 
-        public JObject GetStudents()
-        {
-            DataTable dt = new DataTable();
-            List<DbParamerter> prams = new List<DbParamerter>();
+//        public JObject GetStudents()
+//        {
+//            DataTable dt = new DataTable();
+//            List<DbParamerter> prams = new List<DbParamerter>();
 
-            StringBuilder sql = new StringBuilder();
-            sql.AppendLine(" SELECT ");
-            sql.AppendLine("   * ");
-            sql.AppendLine(" FROM ");
-            sql.AppendLine("   PlayGround.dbo.Student ");
-            mssql.ExecuteQuery(ref dt, sql.ToString(), prams);
+//            StringBuilder sql = new StringBuilder();
+//            sql.AppendLine(" SELECT ");
+//            sql.AppendLine("   * ");
+//            sql.AppendLine(" FROM ");
+//            sql.AppendLine("   PlayGround.dbo.Student ");
+//            mssql.ExecuteQuery(ref dt, sql.ToString(), prams);
 
-            string tblJson = JsonConvert.SerializeObject(dt);
-            return JObject.Parse(tblJson);
-        }
+//            string tblJson = JsonConvert.SerializeObject(dt);
+//            return JObject.Parse(tblJson);
+//        }
 
-        public JObject InsertStudents()
-        {
-            DataTable dt = new DataTable();
-            List<DbParamerter> prams = new List<DbParamerter>();
+//        public JObject InsertStudents()
+//        {
+//            DataTable dt = new DataTable();
+//            List<DbParamerter> prams = new List<DbParamerter>();
 
-            StringBuilder sql = new StringBuilder();
-            sql.AppendLine(" SELECT ");
-            sql.AppendLine("   * ");
-            sql.AppendLine(" FROM ");
-            sql.AppendLine("   PlayGround.dbo.Student ");
-            mssql.ExecuteQuery(ref dt, sql.ToString(), prams);
+//            StringBuilder sql = new StringBuilder();
+//            sql.AppendLine(" SELECT ");
+//            sql.AppendLine("   * ");
+//            sql.AppendLine(" FROM ");
+//            sql.AppendLine("   PlayGround.dbo.Student ");
+//            mssql.ExecuteQuery(ref dt, sql.ToString(), prams);
 
-            string tblJson = JsonConvert.SerializeObject(dt);
-            return JObject.Parse(tblJson);
-        }
+//            string tblJson = JsonConvert.SerializeObject(dt);
+//            return JObject.Parse(tblJson);
+//        }
 
-        public JObject UpdateStudents()
-        {
-            DataTable dt = new DataTable();
-            List<DbParamerter> prams = new List<DbParamerter>();
+//        public JObject UpdateStudents()
+//        {
+//            DataTable dt = new DataTable();
+//            List<DbParamerter> prams = new List<DbParamerter>();
 
-            StringBuilder sql = new StringBuilder();
-            sql.AppendLine(" SELECT ");
-            sql.AppendLine("   * ");
-            sql.AppendLine(" FROM ");
-            sql.AppendLine("   PlayGround.dbo.Student ");
-            mssql.ExecuteQuery(ref dt, sql.ToString(), prams);
+//            StringBuilder sql = new StringBuilder();
+//            sql.AppendLine(" SELECT ");
+//            sql.AppendLine("   * ");
+//            sql.AppendLine(" FROM ");
+//            sql.AppendLine("   PlayGround.dbo.Student ");
+//            mssql.ExecuteQuery(ref dt, sql.ToString(), prams);
 
-            string tblJson = JsonConvert.SerializeObject(dt);
-            return JObject.Parse(tblJson);
-        }
+//            string tblJson = JsonConvert.SerializeObject(dt);
+//            return JObject.Parse(tblJson);
+//        }
 
-        public void InsertImage(int iid , byte[] imageByteArray, string name)
-        {
-            List<DbParamerter> prams = new List<DbParamerter>();
+//        public void InsertImage(int iid , byte[] imageByteArray, string name)
+//        {
+//            List<DbParamerter> prams = new List<DbParamerter>();
             
-            DbParamerter pIid = new DbParamerter();
-            pIid.Name = "@Iid";
-            pIid.DbTypeMssql = SqlDbType.BigInt;
-            pIid.Val = iid; //ここにイメージデータが入る予定
-            pIid.Direction = ParameterDirection.Input;
+//            DbParamerter pIid = new DbParamerter();
+//            pIid.Name = "@Iid";
+//            pIid.DbTypeMssql = SqlDbType.BigInt;
+//            pIid.Val = iid; //ここにイメージデータが入る予定
+//            pIid.Direction = ParameterDirection.Input;
 
-            DbParamerter pImage = new DbParamerter();
-            pImage.Name = "@Image";
-            pImage.DbTypeMssql = SqlDbType.Image;
-            pImage.Val = imageByteArray; //ここにイメージデータが入る予定
-            pImage.Direction = ParameterDirection.Input;
+//            DbParamerter pImage = new DbParamerter();
+//            pImage.Name = "@Image";
+//            pImage.DbTypeMssql = SqlDbType.Image;
+//            pImage.Val = imageByteArray; //ここにイメージデータが入る予定
+//            pImage.Direction = ParameterDirection.Input;
 
-            DbParamerter pName = new DbParamerter();
-            pName.Name = "@Name";
-            pName.DbTypeMssql = SqlDbType.NVarChar;
-            pName.Val = name; //ここにイメージデータが入る予定
-            pName.Direction = ParameterDirection.Input;
+//            DbParamerter pName = new DbParamerter();
+//            pName.Name = "@Name";
+//            pName.DbTypeMssql = SqlDbType.NVarChar;
+//            pName.Val = name; //ここにイメージデータが入る予定
+//            pName.Direction = ParameterDirection.Input;
 
-            prams.Add(pIid);
-            prams.Add(pImage);
-            prams.Add(pName);
+//            prams.Add(pIid);
+//            prams.Add(pImage);
+//            prams.Add(pName);
 
-            //INSERT INTO syain(id, name, romaji) VALUES(1, '鈴木', 'suzuki');
-            StringBuilder sql = new StringBuilder();
-            sql.AppendLine(" INSERT INTO PlayGround.dbo.DATAIMAGE ");
-            sql.AppendLine(" (    ");
-            sql.AppendLine("   Iid  ");
-            sql.AppendLine("   ,Image  ");
-            sql.AppendLine("   ,Name  ");
-            sql.AppendLine(" )  ");
-            sql.AppendLine(" VALUES  ");
-            sql.AppendLine(" (    ");
-            sql.AppendLine("   @Iid  ");
-            sql.AppendLine("   ,@Image  ");
-            sql.AppendLine("   ,@Name  ");
-            sql.AppendLine(" )  ");
-            mssql.ExecuteQuery(sql.ToString(), prams);
-        }
+//            //INSERT INTO syain(id, name, romaji) VALUES(1, '鈴木', 'suzuki');
+//            StringBuilder sql = new StringBuilder();
+//            sql.AppendLine(" INSERT INTO PlayGround.dbo.DATAIMAGE ");
+//            sql.AppendLine(" (    ");
+//            sql.AppendLine("   Iid  ");
+//            sql.AppendLine("   ,Image  ");
+//            sql.AppendLine("   ,Name  ");
+//            sql.AppendLine(" )  ");
+//            sql.AppendLine(" VALUES  ");
+//            sql.AppendLine(" (    ");
+//            sql.AppendLine("   @Iid  ");
+//            sql.AppendLine("   ,@Image  ");
+//            sql.AppendLine("   ,@Name  ");
+//            sql.AppendLine(" )  ");
+//            mssql.ExecuteQuery(sql.ToString(), prams);
+//        }
 
-        public byte[] ReadImage(int iid, ref Hashtable ret)
-        {
-            List<DbParamerter> dbParams = new List<DbParamerter>();
+//        public byte[] ReadImage(int iid, ref Hashtable ret)
+//        {
+//            List<DbParamerter> dbParams = new List<DbParamerter>();
 
-            DbParamerter pIid = new DbParamerter();
-            pIid.Name = "@Iid";
-            pIid.DbTypeMssql = SqlDbType.BigInt;
-            pIid.Val = iid; //ここにイメージデータが入る予定
-            pIid.Direction = ParameterDirection.Input;
-            dbParams.Add(pIid);
+//            DbParamerter pIid = new DbParamerter();
+//            pIid.Name = "@Iid";
+//            pIid.DbTypeMssql = SqlDbType.BigInt;
+//            pIid.Val = iid; //ここにイメージデータが入る予定
+//            pIid.Direction = ParameterDirection.Input;
+//            dbParams.Add(pIid);
 
-            DataTable dt = new DataTable();
-            StringBuilder sql = new StringBuilder();
-            sql.AppendLine(" SELECT ");
-            sql.AppendLine("   Name ");
-            sql.AppendLine("   ,Image ");
-            sql.AppendLine("   ,Filetype ");
-            sql.AppendLine("   ,Filecontenttype ");
-            sql.AppendLine(" FROM ");
-            sql.AppendLine("   PlayGround.dbo.DATAIMAGE ");
-            sql.AppendLine(" WHERE ");
-            sql.AppendLine("   Iid = @Iid ");
-            mssql.ExecuteQuery(ref dt, sql.ToString(), dbParams);
+//            DataTable dt = new DataTable();
+//            StringBuilder sql = new StringBuilder();
+//            sql.AppendLine(" SELECT ");
+//            sql.AppendLine("   Name ");
+//            sql.AppendLine("   ,Image ");
+//            sql.AppendLine("   ,Filetype ");
+//            sql.AppendLine("   ,Filecontenttype ");
+//            sql.AppendLine(" FROM ");
+//            sql.AppendLine("   PlayGround.dbo.DATAIMAGE ");
+//            sql.AppendLine(" WHERE ");
+//            sql.AppendLine("   Iid = @Iid ");
+//            mssql.ExecuteQuery(ref dt, sql.ToString(), dbParams);
 
-            var image    = (Byte[])dt.Rows[0]["Image"];
-            ret["Name"] = dt.Rows[0]["Name"].ToString();
-            ret["Filetype"]      = dt.Rows[0]["Filetype"].ToString();
-            ret["FiletContentType"] = dt.Rows[0]["Filecontenttype"].ToString();
-            return image;
-        }
-    }
-}
+//            var image    = (Byte[])dt.Rows[0]["Image"];
+//            ret["Name"] = dt.Rows[0]["Name"].ToString();
+//            ret["Filetype"]      = dt.Rows[0]["Filetype"].ToString();
+//            ret["FiletContentType"] = dt.Rows[0]["Filecontenttype"].ToString();
+//            return image;
+//        }
+//    }
+//}
 
 

@@ -16,7 +16,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Commons.DbAccessor
 {
-    public class AccessorMssql : IAccessor, IDisposable
+    public class AccessorMssql : IDisposable
     {
         /// <summary>
         /// 接続情報
@@ -46,7 +46,7 @@ namespace Commons.DbAccessor
         /// <summary>
         /// 切断とインスタンスの破棄
         /// </summary>
-        public override void Close()
+        public void Close()
         {
             this.conn.Close();
             this.conn.Dispose();
@@ -56,381 +56,210 @@ namespace Commons.DbAccessor
         /// プロシージャの実行処理
         /// </summary>
         /// <param name="packageName"></param>
-        /// <param name="paramList"></param>
-        /// <returns></returns>
-        public override bool ExecuteProcedure(string packageName,ref List<DbParamerter> paramList)
+        /// <param name="dbParams"></param>
+        public void ExecuteProcedure(string packageName, Dictionary<string, object> dbParams)
         {
-            bool result = true;
-
-            //コマンドを生成する
             using (SqlCommand command = new SqlCommand(packageName, this.conn))
             {
-                //接続
                 try
                 {
-                    LoggerBase.logger.Info("[ProcessId:{0}] [パッケージコマンド実行処理] 開始", LoggerBase.ProcessId);
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 開始", LoggerBase.ProcessId);
-                    command.Connection.Open();
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 成功", LoggerBase.ProcessId);
-
+                    if (command.Connection.State != ConnectionState.Open)
+                    {
+                        command.Connection.Open();
+                    }
 
                     using (SqlTransaction transaction = command.Connection.BeginTransaction(IsolationLevel.ReadCommitted))
                     {
                         //引数設定
                         command.Transaction = transaction;
                         command.CommandType = CommandType.StoredProcedure;
-                        foreach (DbParamerter para in paramList)
+                        foreach (var param in dbParams)
                         {
-                            SqlParameter sqlPara = new SqlParameter();
-                            sqlPara.ParameterName = para.Name;
-                            sqlPara.Value = para.Val;
-                            sqlPara.Size = para.Size;
-                            sqlPara.SqlDbType = para.DbTypeMssql;
-                            sqlPara.Direction = para.Direction;
-                            command.Parameters.Add(sqlPara);
+                            command.Parameters.AddWithValue(param.Key, param.Value);
                         }
 
                         //ストアドを実行する
-                        LoggerBase.logger.Info("[ProcessId:{0}] [コマンド実行] 開始", LoggerBase.ProcessId);
                         command.ExecuteNonQuery();
                         transaction.Commit();
-                        LoggerBase.logger.Info("[ProcessId:{0}] [コマンド実行] 成功", LoggerBase.ProcessId);
                     }
 
                 }
                 catch (SqlException e)
                 {
-                    LoggerBase.logger.Fatal("[ProcessId:{0}] [パッケージコマンド実行処理] 異常終了", LoggerBase.ProcessId);
-                    LoggerBase.logger.Fatal(e.ToString());
-                    result = false;
+                    throw;
                 }
                 finally 
                 {
                     command.Connection.Close();
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 終了", LoggerBase.ProcessId);
-                    LoggerBase.logger.Info("[ProcessId:{0}] [パッケージコマンド実行処理] 終了", LoggerBase.ProcessId);
                 }
             }
-            return result;
         }
 
         /// <summary>
         /// SQL実行処理
         /// </summary>
-        /// <param name="tableName"></param>
-        /// <param name="dataset"></param>
         /// <param name="commandSql"></param>
-        /// <param name="paramList"></param>
+        /// <param name="dbParams"></param>
         /// <returns></returns>
-        public override bool ExecuteQuery(string tableName, ref DataSet dataset, string commandSql, List<DbParamerter> paramList)
+        public DataSet ExecuteQueryDs(string commandSql, Dictionary<string, object> dbParams)
         {
-            bool result = true;
             using (SqlCommand command = new SqlCommand(commandSql, this.conn))
             {
-
-                //接続
                 try
                 {
-                    LoggerBase.logger.Info("[ProcessId:{0}] [SQLコマンド実行処理] 開始", LoggerBase.ProcessId);
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 開始", LoggerBase.ProcessId);
-                    command.Connection.Open();
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 成功", LoggerBase.ProcessId);
-
-                    //パラメタ,コマンドタイプ定義
-                    command.CommandType = CommandType.Text;
-                    foreach (DbParamerter para in paramList)
+                    if (command.Connection.State != ConnectionState.Open)
                     {
-                        SqlParameter sqlPara = new SqlParameter();
-                        sqlPara.ParameterName = para.Name;
-                        sqlPara.Value = para.Val;
-                        sqlPara.Size = para.Size;
-                        sqlPara.SqlDbType = para.DbTypeMssql;
-                        sqlPara.Direction = para.Direction;
-                        command.Parameters.Add(sqlPara);
+                        command.Connection.Open();
+                    }
+
+                    command.CommandType = CommandType.Text;
+                    foreach (var param in dbParams)
+                    {
+                        command.Parameters.AddWithValue(param.Key, param.Value);
                     }
 
                     //コマンド実行
+                    DataSet ds = new DataSet();
                     using (SqlDataAdapter adapter = new SqlDataAdapter(command))
                     {
-                        LoggerBase.logger.Info("[ProcessId:{0}] [コマンド実行] 開始", LoggerBase.ProcessId);
                         SqlCommandBuilder builder = new SqlCommandBuilder(adapter);
-                        adapter.Fill(dataset, tableName);
-                        LoggerBase.logger.Info("[ProcessId:{0}] [コマンド実行] 成功", LoggerBase.ProcessId);
+                        adapter.Fill(ds);
+                    }
+                    return ds;
+                }
+                catch (SqlException e)
+                {
+                    throw;
+                }
+                finally
+                {
+                    command.Connection.Close();
+                }
+            }
+        }
+
+        /// <summary>
+        /// SQL実行処理
+        /// </summary>
+        /// <param name="commandSql"></param>
+        /// <param name="dbParams"></param>
+        /// <returns></returns>
+        public DataTable ExecuteQueryDt(string commandSql, Dictionary<string, object> dbParams)
+        {
+            using (SqlCommand command = new SqlCommand(commandSql, this.conn))
+            {
+                try
+                {
+                    if (command.Connection.State != ConnectionState.Open)
+                    {
+                        command.Connection.Open();
+                    }
+
+                    command.CommandType = CommandType.Text;
+                    foreach (var param in dbParams)
+                    {
+                        command.Parameters.AddWithValue(param.Key, param.Value);
+                    }
+
+                    DataTable dt = new DataTable();
+                    using (SqlDataAdapter adapter = new SqlDataAdapter(command))
+                    {
+                        SqlCommandBuilder builder = new SqlCommandBuilder(adapter);
+                        adapter.Fill(dt);
+                    }
+                    return dt;
+                }
+                catch (SqlException e)
+                {
+                    throw;
+                }
+                finally
+                {
+                    command.Connection.Close();
+                }
+            }
+        }
+
+        /// <summary>
+        /// SQL実行処理
+        /// </summary>
+        /// <param name="commandSql"></param>
+        /// <param name="dbParams"></param>
+        public void ExecuteQueryStored(string commandSql, Dictionary<string, object> dbParams)
+        {
+            using (SqlCommand command = new SqlCommand(commandSql, this.conn))
+            {
+                try
+                {
+                    if (command.Connection.State != ConnectionState.Open)
+                    {
+                        command.Connection.Open();
+                    }
+
+                    command.CommandType = CommandType.Text;
+                    foreach (var param in dbParams)
+                    {
+                        command.Parameters.AddWithValue(param.Key, param.Value);
+                    }
+
+                    using (SqlTransaction transaction = command.Connection.BeginTransaction(IsolationLevel.ReadCommitted))
+                    {
+                        command.ExecuteNonQuery();
+                        transaction.Commit();
                     }
 
                 }
                 catch (SqlException e)
                 {
-                    LoggerBase.logger.Fatal("[ProcessId:{0}] [SQLコマンド実行処理] 異常終了", LoggerBase.ProcessId);
-                    LoggerBase.logger.Fatal(e.ToString());
-                    result = false;
+                    throw;
                 }
                 finally
                 {
                     command.Connection.Close();
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 終了", LoggerBase.ProcessId);
-                    LoggerBase.logger.Info("[ProcessId:{0}] [SQLコマンド実行処理] 終了", LoggerBase.ProcessId);
-
                 }
             }
-            return result;
         }
 
         /// <summary>
         /// SQL実行処理
         /// </summary>
-        /// <param name="tableName"></param>
-        /// <param name="dataset"></param>
         /// <param name="commandSql"></param>
-        /// <param name="paramList"></param>
+        /// <param name="dbParams"></param>
         /// <returns></returns>
-        public  override bool ExecuteQuery(ref DataTable datatable, string commandSql, List<DbParamerter> paramList)
+        public object ExecuteQueryForScalar(string commandSql, Dictionary<string,object> dbParams)
         {
-            bool result = true;
             using (SqlCommand command = new SqlCommand(commandSql, this.conn))
             {
-
                 //接続
                 try
                 {
-                    LoggerBase.logger.Info("[ProcessId:{0}] [SQLコマンド実行処理] 開始", LoggerBase.ProcessId);
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 開始", LoggerBase.ProcessId);
-                    command.Connection.Open();
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 成功", LoggerBase.ProcessId);
-
-                    //パラメタ,コマンドタイプ定義
-                    command.CommandType = CommandType.Text;
-                    foreach (DbParamerter para in paramList)
-                    {
-                        SqlParameter sqlPara = new SqlParameter();
-                        sqlPara.ParameterName = para.Name;
-                        sqlPara.Value = para.Val;
-                        sqlPara.Size = para.Size;
-                        sqlPara.SqlDbType = para.DbTypeMssql;
-                        sqlPara.Direction = para.Direction;
-                        command.Parameters.Add(sqlPara);
-                    }
-
-
-                    using (SqlDataAdapter adapter = new SqlDataAdapter(command))
-                    {
-                        LoggerBase.logger.Info("[ProcessId:{0}] [コマンド実行] 開始", LoggerBase.ProcessId);
-                        SqlCommandBuilder builder = new SqlCommandBuilder(adapter);
-                        adapter.Fill(datatable);
-                        LoggerBase.logger.Info("[ProcessId:{0}] [コマンド実行] 成功", LoggerBase.ProcessId);
+                    object obj = new object();
+                    if (command.Connection.State != ConnectionState.Open) {
+                        command.Connection.Open();
                     }
                     
-
-                }
-                catch (SqlException e)
-                {
-                    LoggerBase.logger.Fatal("[ProcessId:{0}] [SQLコマンド実行処理] 異常終了", LoggerBase.ProcessId);
-                    LoggerBase.logger.Fatal(e.ToString());
-                    result = false;
-                }
-                finally
-                {
-                    command.Connection.Close();
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 終了", LoggerBase.ProcessId);
-                    LoggerBase.logger.Info("[ProcessId:{0}] [SQLコマンド実行処理] 終了", LoggerBase.ProcessId);
-
-                }
-            }
-            return result;
-        }
-
-        /// <summary>
-        /// SQL実行処理
-        /// </summary>
-        /// <param name="tableName"></param>
-        /// <param name="dataset"></param>
-        /// <param name="commandSql"></param>
-        /// <param name="paramList"></param>
-        /// <returns></returns>
-        public bool ExecuteQuery(string commandSql, List<DbParamerter> paramList)
-        {
-            bool result = true;
-            using (SqlCommand command = new SqlCommand(commandSql, this.conn))
-            {
-
-                //接続
-                try
-                {
-                    LoggerBase.logger.Info("[ProcessId:{0}] [SQLコマンド実行処理] 開始", LoggerBase.ProcessId);
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 開始", LoggerBase.ProcessId);
-                    command.Connection.Open();
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 成功", LoggerBase.ProcessId);
-
-                    //パラメタ,コマンドタイプ定義
                     command.CommandType = CommandType.Text;
-                    foreach (DbParamerter para in paramList)
+                    foreach (var param in dbParams)
                     {
-                        SqlParameter sqlPara = new SqlParameter();
-                        sqlPara.ParameterName = para.Name;
-                        sqlPara.Value = para.Val;
-                        sqlPara.Size = para.Size;
-                        sqlPara.SqlDbType = para.DbTypeMssql;
-                        sqlPara.Direction = para.Direction;
-                        command.Parameters.Add(sqlPara);
+                        command.Parameters.AddWithValue(param.Key,param.Value);
                     }
 
-                    //using (SqlTransaction transaction = command.Connection.BeginTransaction(IsolationLevel.ReadCommitted))
-                    //{
-                        //ストアドを実行する
-                        LoggerBase.logger.Info("[ProcessId:{0}] [コマンド実行] 開始", LoggerBase.ProcessId);
-                        command.ExecuteNonQuery();
-                        //transaction.Commit();
-                        LoggerBase.logger.Info("[ProcessId:{0}] [コマンド実行] 成功", LoggerBase.ProcessId);
-                    //}
-
-                }
-                catch (SqlException e)
-                {
-                    LoggerBase.logger.Fatal("[ProcessId:{0}] [SQLコマンド実行処理] 異常終了", LoggerBase.ProcessId);
-                    LoggerBase.logger.Fatal(e.ToString());
-                    result = false;
-                }
-                finally
-                {
-                    command.Connection.Close();
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 終了", LoggerBase.ProcessId);
-                    LoggerBase.logger.Info("[ProcessId:{0}] [SQLコマンド実行処理] 終了", LoggerBase.ProcessId);
-
-                }
-            }
-            return result;
-        }
-
-        /// <summary>
-        /// SQL実行処理
-        /// </summary>
-        /// <param name="tableName"></param>
-        /// <param name="dataset"></param>
-        /// <param name="commandSql"></param>
-        /// <param name="paramList"></param>
-        /// <returns></returns>
-        public override bool ExecuteQueryForScalar(ref object obj, string commandSql, List<DbParamerter> paramList)
-        {
-            bool result = true;
-            using (SqlCommand command = new SqlCommand(commandSql, this.conn))
-            {
-
-                //接続
-                try
-                {
-                    LoggerBase.logger.Info("[ProcessId:{0}] [SQLコマンド実行処理] 開始", LoggerBase.ProcessId);
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 開始", LoggerBase.ProcessId);
-                    command.Connection.Open();
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 成功", LoggerBase.ProcessId);
-
-                    //パラメタ,コマンドタイプ定義
-                    command.CommandType = CommandType.Text;
-                    foreach (DbParamerter para in paramList)
-                    {
-                        SqlParameter sqlPara = new SqlParameter();
-                        sqlPara.ParameterName = para.Name;
-                        sqlPara.Value = para.Val;
-                        sqlPara.Size = para.Size;
-                        sqlPara.SqlDbType = para.DbTypeMssql;
-                        sqlPara.Direction = para.Direction;
-                        command.Parameters.Add(sqlPara);
-                    }
-
-                    //コマンド実行
                     using (SqlDataAdapter adapter = new SqlDataAdapter(command))
                     {
-                        LoggerBase.logger.Info("[ProcessId:{0}] [コマンド実行] 開始", LoggerBase.ProcessId);
                         SqlCommandBuilder builder = new SqlCommandBuilder(adapter);
                         obj = command.ExecuteScalar();
-                        LoggerBase.logger.Info("[ProcessId:{0}] [コマンド実行] 成功", LoggerBase.ProcessId);
                     }
-
+                    return obj;
                 }
                 catch (SqlException e)
                 {
-                    LoggerBase.logger.Fatal("[ProcessId:{0}] [SQLコマンド実行処理] 異常終了", LoggerBase.ProcessId);
-                    LoggerBase.logger.Fatal(e.ToString());
-                    result = false;
+                    throw;
                 }
                 finally
                 {
                     command.Connection.Close();
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 終了", LoggerBase.ProcessId);
-                    LoggerBase.logger.Info("[ProcessId:{0}] [SQLコマンド実行処理] 終了", LoggerBase.ProcessId);
-
                 }
             }
-            return result;
         }
-
-        ///// <summary>
-        ///// SQL実行処理
-        ///// </summary>
-        ///// <param name="tableName"></param>
-        ///// <param name="dataset"></param>
-        ///// <param name="commandSql"></param>
-        ///// <param name="paramList"></param>
-        ///// <returns></returns>
-        //public override bool ExecuteQuery(string commandSql, List<DbParamerter> paramList)
-        //{
-        //    bool result = true;
-        //    using (SqlCommand command = new SqlCommand(commandSql, this.conn))
-        //    {
-
-        //        //接続
-        //        try
-        //        {
-        //            LoggerBase.logger.Info("[ProcessId:{0}] [SQLコマンド実行処理] 開始", LoggerBase.ProcessId);
-        //            LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 開始", LoggerBase.ProcessId);
-        //            command.Connection.Open();
-        //            LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 成功", LoggerBase.ProcessId);
-
-        //            //パラメタ,コマンドタイプ定義
-        //            command.CommandType = CommandType.Text;
-        //            foreach (DbParamerter para in paramList)
-        //            {
-        //                SqlParameter sqlPara = new SqlParameter();
-        //                sqlPara.ParameterName = para.Name;
-        //                sqlPara.Value = para.Val;
-        //                sqlPara.Size = para.Size;
-        //                sqlPara.SqlDbType = para.DbTypeMssql;
-        //                sqlPara.Direction = para.Direction;
-        //                command.Parameters.Add(sqlPara);
-        //            }
-
-        //            LoggerBase.logger.Info("[ProcessId:{0}] [コマンド実行] 開始", LoggerBase.ProcessId);
-        //            using (SqlDataReader reader = command.ExecuteReader()) 
-        //            {
-        //                reader.AutoMap
-        //            }
-        //            LoggerBase.logger.Info("[ProcessId:{0}] [コマンド実行] 成功", LoggerBase.ProcessId);
-
-        //            using (SqlDataAdapter adapter = new SqlDataAdapter(command))
-        //            {
-                       
-                        
-        //                SqlCommandBuilder builder = new SqlCommandBuilder(adapter);
-        //                adapter.Fill(datatable);
-                        
-        //            }
-
-
-        //        }
-        //        catch (SqlException e)
-        //        {
-        //            LoggerBase.logger.Fatal("[ProcessId:{0}] [SQLコマンド実行処理] 異常終了", LoggerBase.ProcessId);
-        //            LoggerBase.logger.Fatal(e.ToString());
-        //            result = false;
-        //        }
-        //        finally
-        //        {
-        //            command.Connection.Close();
-        //            LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 終了", LoggerBase.ProcessId);
-        //            LoggerBase.logger.Info("[ProcessId:{0}] [SQLコマンド実行処理] 終了", LoggerBase.ProcessId);
-
-        //        }
-        //    }
-        //    return result;
-        //}
     }
 }

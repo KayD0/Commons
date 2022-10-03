@@ -9,7 +9,7 @@ using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using System.Linq;
 using Commons.DbAccesorContext;
-using Commons.DbMigrationContext;
+//using Commons.DbMigrationContext;
 using System.Text;
 
 namespace CommonsNUnitTest
@@ -17,7 +17,7 @@ namespace CommonsNUnitTest
     public class DbContextTest
     {
         PlayDbContext dbContext = new PlayDbContext();
-        MigDbContext migDbContext = new MigDbContext();
+        //MigDbContext migDbContext = new MigDbContext();
 
         [Test]
         public void test() 

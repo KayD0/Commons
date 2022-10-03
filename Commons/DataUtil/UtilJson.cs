@@ -11,10 +11,10 @@ using Newtonsoft.Json.Linq;
 namespace Commons.DataUtil
 {
 
-    public class UtilJson : UtilStream
+    public class UtilJson
     {
 
-        #region 
+        #region コンストラクタ
         /// <summary>
         /// コンストラクタ
         /// </summary>
@@ -40,19 +40,21 @@ namespace Commons.DataUtil
         /// <returns></returns>
         public string ConvertFileToJString(string filePath)
         {
-            string jsonData = string.Empty;
-            Encoding encoding = Encoding.GetEncoding(this.Encode);
             try
             {
+                string jsonData = string.Empty;
+                Encoding encoding = Encoding.GetEncoding("UTF-8");
+
                 using (var sr = new StreamReader(filePath, encoding))
                 {
                     jsonData = sr.ReadToEnd();
                 }
+                return jsonData;
             }
-            catch (Exception e)
+            catch (Exception)
             {
+                throw;
             }
-            return jsonData;
         }
         #endregion
 
@@ -63,33 +65,42 @@ namespace Commons.DataUtil
         /// <returns></returns>
         public JObject ConvertFileToJObject(string filePath)
         {
-            string jsonData = string.Empty;
-            Encoding encoding = Encoding.GetEncoding(this.Encode);
             try
             {
+                string jsonData = string.Empty;
+                Encoding encoding = Encoding.GetEncoding("UTF-8");
+
                 using (var sr = new StreamReader(filePath, encoding))
                 {
                     jsonData = sr.ReadToEnd();
                 }
+                return JObject.Parse(jsonData);
             }
-            catch (Exception e)
+            catch (Exception)
             {
+                throw;
             }
-            return JObject.Parse(jsonData);
         }
         #endregion
 
         #region JString → Object
         public T ConvertJStringToObject<T>(string context)
         {
-            using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(context)))
+            try
             {
-                //var setting = new DataContractJsonSerializerSettings()
-                //{
-                //    UseSimpleDictionaryFormat = true,
-                //};
-                var serializer = new DataContractJsonSerializer(typeof(T)/*, setting*/);
-                return (T)serializer.ReadObject(stream);
+                using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(context)))
+                {
+                    //var setting = new DataContractJsonSerializerSettings()
+                    //{
+                    //    UseSimpleDictionaryFormat = true,
+                    //};
+                    var serializer = new DataContractJsonSerializer(typeof(T)/*, setting*/);
+                    return (T)serializer.ReadObject(stream);
+                }
+            }
+            catch (Exception) 
+            {
+                throw;
             }
         }
         #endregion

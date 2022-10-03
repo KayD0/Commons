@@ -9,16 +9,17 @@ using System.Configuration;
 using Commons;
 using Commons.DbAccessor;
 using Commons.DbAccessor.Parameters;
+using Oracle;
 
 namespace Commons.DbAccessor
 {
-    public class AccessorOracle :IAccessor, IDisposable
+    public class AccessorOracle : IDisposable
     {
         /// <summary>
         /// O接続情報
         /// </summary>
         private readonly OracleConnection conn;
-        
+
         /// <summary>
         /// コンストラクタ
         /// </summary>
@@ -40,7 +41,7 @@ namespace Commons.DbAccessor
         /// <summary>
         /// 切断とインスタンスの破棄
         /// </summary>
-        public override void Close()
+        public void Close()
         {
             this.conn.Close();
             this.conn.Dispose();
@@ -50,224 +51,207 @@ namespace Commons.DbAccessor
         /// プロシージャの実行処理
         /// </summary>
         /// <param name="packageName"></param>
-        /// <param name="paramList"></param>
-        /// <returns></returns>
-        public override bool ExecuteProcedure(string packageName,ref List<DbParamerter> paramList)
+        /// <param name="dbParams"></param>
+        public void ExecuteProcedure(string packageName, Dictionary<string, object> dbParams)
         {
-            bool result = true;
-
-            //コマンドを生成する
             using (OracleCommand command = new OracleCommand(packageName, this.conn))
             {
-                //接続
                 try
                 {
-                    LoggerBase.logger.Info("[ProcessId:{0}] [パッケージコマンド実行処理] 開始", LoggerBase.ProcessId);
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 開始", LoggerBase.ProcessId);
-                    command.Connection.Open();
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 成功", LoggerBase.ProcessId);
-
+                    if (command.Connection.State != ConnectionState.Open)
+                    {
+                        command.Connection.Open();
+                    }
 
                     using (OracleTransaction transaction = command.Connection.BeginTransaction(IsolationLevel.ReadCommitted))
                     {
-                        //引数設定
                         command.Transaction = transaction;
                         command.CommandType = CommandType.StoredProcedure;
-                        foreach (DbParamerter para in paramList)
+                        foreach (var param in dbParams)
                         {
-                            command.Parameters.Add(para.Name, para.DbTypeOracle, para.Size, para.Direction);
+                            command.Parameters.Add(param.Key, param.Value);
                         }
 
-                        //ストアドを実行する
-                        LoggerBase.logger.Info("[ProcessId:{0}] [コマンド実行] 開始", LoggerBase.ProcessId);
                         command.ExecuteNonQuery();
                         transaction.Commit();
-                        LoggerBase.logger.Info("[ProcessId:{0}] [コマンド実行] 成功", LoggerBase.ProcessId);
                     }
 
                 }
                 catch (OracleException e)
                 {
-                    LoggerBase.logger.Fatal("[ProcessId:{0}] [パッケージコマンド実行処理] 異常終了", LoggerBase.ProcessId);
-                    LoggerBase.logger.Fatal(e.ToString());
-                    result = false;
-                }
-                finally 
-                {
-                    command.Connection.Close();
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 終了", LoggerBase.ProcessId);
-                    LoggerBase.logger.Info("[ProcessId:{0}] [パッケージコマンド実行処理] 終了", LoggerBase.ProcessId);
-                }
-            }
-            return result;
-        }
-
-        /// <summary>
-        /// SQL実行処理
-        /// </summary>
-        /// <param name="tableName"></param>
-        /// <param name="dataset"></param>
-        /// <param name="commandSql"></param>
-        /// <param name="paramList"></param>
-        /// <returns></returns>
-        public override bool ExecuteQuery(string tableName, ref DataSet dataset, string commandSql, List<DbParamerter> paramList)
-        {
-            bool result = true;
-            using (OracleCommand command = new OracleCommand(commandSql, this.conn))
-            {
-
-                //接続
-                try
-                {
-                    LoggerBase.logger.Info("[ProcessId:{0}] [SQLコマンド実行処理] 開始", LoggerBase.ProcessId);
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 開始", LoggerBase.ProcessId);
-                    command.Connection.Open();
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 成功", LoggerBase.ProcessId);
-
-                    //パラメタ,コマンドタイプ定義
-                    command.CommandType = CommandType.Text;
-                    foreach (DbParamerter para in paramList)
-                    {
-                        command.Parameters.Add(para.Name,para.DbTypeOracle,para.Size,para.Direction);
-                    }
-
-                    //コマンド実行
-                    using (OracleDataAdapter adapter = new OracleDataAdapter(command))
-                    {
-                        LoggerBase.logger.Info("[ProcessId:{0}] [コマンド実行] 開始", LoggerBase.ProcessId);
-                        OracleCommandBuilder builder = new OracleCommandBuilder(adapter);
-                        adapter.Fill(dataset, tableName);
-                        LoggerBase.logger.Info("[ProcessId:{0}] [コマンド実行] 成功", LoggerBase.ProcessId);
-                    }
-
-                }
-                catch (OracleException e)
-                {
-                    LoggerBase.logger.Fatal("[ProcessId:{0}] [SQLコマンド実行処理] 異常終了", LoggerBase.ProcessId);
-                    LoggerBase.logger.Fatal(e.ToString());
-                    result = false;
+                    throw;
                 }
                 finally
                 {
                     command.Connection.Close();
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 終了", LoggerBase.ProcessId);
-                    LoggerBase.logger.Info("[ProcessId:{0}] [SQLコマンド実行処理] 終了", LoggerBase.ProcessId);
-
                 }
             }
-            return result;
         }
 
         /// <summary>
         /// SQL実行処理
         /// </summary>
-        /// <param name="tableName"></param>
-        /// <param name="dataset"></param>
         /// <param name="commandSql"></param>
-        /// <param name="paramList"></param>
+        /// <param name="dbParams"></param>
         /// <returns></returns>
-        public override bool ExecuteQuery(ref DataTable datatable, string commandSql, List<DbParamerter> paramList)
+        public DataSet ExecuteQueryDs(string commandSql, Dictionary<string, object> dbParams)
         {
-            bool result = true;
             using (OracleCommand command = new OracleCommand(commandSql, this.conn))
             {
-
-                //接続
                 try
                 {
-                    LoggerBase.logger.Info("[ProcessId:{0}] [SQLコマンド実行処理] 開始", LoggerBase.ProcessId);
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 開始", LoggerBase.ProcessId);
-                    command.Connection.Open();
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 成功", LoggerBase.ProcessId);
-
-                    //パラメタ,コマンドタイプ定義
-                    command.CommandType = CommandType.Text;
-                    foreach (DbParamerter para in paramList)
+                    if (command.Connection.State != ConnectionState.Open)
                     {
-                        command.Parameters.Add(para.Name, para.DbTypeOracle, para.Size, para.Direction);
+                        command.Connection.Open();
                     }
 
-                    //コマンド実行
+                    command.CommandType = CommandType.Text;
+                    foreach (var param in dbParams)
+                    {
+                        command.Parameters.Add(param.Key, param.Value);
+                    }
+
+                    DataSet ds = new DataSet();
                     using (OracleDataAdapter adapter = new OracleDataAdapter(command))
                     {
-                        LoggerBase.logger.Info("[ProcessId:{0}] [コマンド実行] 開始", LoggerBase.ProcessId);
                         OracleCommandBuilder builder = new OracleCommandBuilder(adapter);
-                        adapter.Fill(datatable);
-                        LoggerBase.logger.Info("[ProcessId:{0}] [コマンド実行] 成功", LoggerBase.ProcessId);
+                        adapter.Fill(ds);
+                    }
+                    return ds;
+                }
+                catch (OracleException e)
+                {
+                    throw;
+                }
+                finally
+                {
+                    command.Connection.Close();
+                }
+            }
+        }
+
+        /// <summary>
+        /// SQL実行処理
+        /// </summary>
+        /// <param name="commandSql"></param>
+        /// <param name="dbParams"></param>
+        /// <returns></returns>
+        public DataTable ExecuteQueryDt(string commandSql, Dictionary<string, object> dbParams)
+        {
+            using (OracleCommand command = new OracleCommand(commandSql, this.conn))
+            {
+                try
+                {
+                    if (command.Connection.State != ConnectionState.Open)
+                    {
+                        command.Connection.Open();
+                    }
+
+                    command.CommandType = CommandType.Text;
+                    foreach (var param in dbParams)
+                    {
+                        command.Parameters.Add(param.Key, param.Value);
+                    }
+
+                    DataTable dt = new DataTable();
+                    using (OracleDataAdapter adapter = new OracleDataAdapter(command))
+                    {
+                        OracleCommandBuilder builder = new OracleCommandBuilder(adapter);
+                        adapter.Fill(dt);
+                    }
+                    return dt;
+                }
+                catch (OracleException e)
+                {
+                    throw;
+                }
+                finally
+                {
+                    command.Connection.Close();
+                }
+            }
+        }
+
+        /// <summary>
+        /// SQL実行処理
+        /// </summary>
+        /// <param name="commandSql"></param>
+        /// <param name="dbParams"></param>
+        public void ExecuteQueryStored(string commandSql, Dictionary<string, object> dbParams)
+        {
+            using (OracleCommand command = new OracleCommand(commandSql, this.conn))
+            {
+                try
+                {
+                    if (command.Connection.State != ConnectionState.Open)
+                    {
+                        command.Connection.Open();
+                    }
+
+                    command.CommandType = CommandType.Text;
+                    foreach (var param in dbParams)
+                    {
+                        command.Parameters.Add(param.Key, param.Value);
+                    }
+
+                    using (OracleTransaction transaction = command.Connection.BeginTransaction(IsolationLevel.ReadCommitted))
+                    {
+                        command.ExecuteNonQuery();
+                        transaction.Commit();
                     }
 
                 }
                 catch (OracleException e)
                 {
-                    LoggerBase.logger.Fatal("[ProcessId:{0}] [SQLコマンド実行処理] 異常終了", LoggerBase.ProcessId);
-                    LoggerBase.logger.Fatal(e.ToString());
-                    result = false;
+                    throw;
                 }
                 finally
                 {
                     command.Connection.Close();
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 終了", LoggerBase.ProcessId);
-                    LoggerBase.logger.Info("[ProcessId:{0}] [SQLコマンド実行処理] 終了", LoggerBase.ProcessId);
-
                 }
             }
-            return result;
         }
 
         /// <summary>
         /// SQL実行処理
         /// </summary>
-        /// <param name="tableName"></param>
-        /// <param name="dataset"></param>
         /// <param name="commandSql"></param>
-        /// <param name="paramList"></param>
+        /// <param name="dbParams"></param>
         /// <returns></returns>
-        public override bool ExecuteQueryForScalar(ref object obj, string commandSql, List<DbParamerter> paramList)
+        public object ExecuteQueryForScalar(string commandSql, Dictionary<string, object> dbParams)
         {
-            bool result = true;
             using (OracleCommand command = new OracleCommand(commandSql, this.conn))
             {
-
-                //接続
                 try
                 {
-                    LoggerBase.logger.Info("[ProcessId:{0}] [SQLコマンド実行処理] 開始", LoggerBase.ProcessId);
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 開始", LoggerBase.ProcessId);
-                    command.Connection.Open();
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 成功", LoggerBase.ProcessId);
-
-                    //パラメタ,コマンドタイプ定義
-                    command.CommandType = CommandType.Text;
-                    foreach (DbParamerter para in paramList)
+                    object obj = new object();
+                    if (command.Connection.State != ConnectionState.Open)
                     {
-                        command.Parameters.Add(para.Name, para.DbTypeOracle, para.Size, para.Direction);
+                        command.Connection.Open();
                     }
 
-                    //コマンド実行
+                    command.CommandType = CommandType.Text;
+                    foreach (var param in dbParams)
+                    {
+                        command.Parameters.Add(param.Key, param.Value);
+                    }
+
                     using (OracleDataAdapter adapter = new OracleDataAdapter(command))
                     {
-                        LoggerBase.logger.Info("[ProcessId:{0}] [コマンド実行] 開始", LoggerBase.ProcessId);
                         OracleCommandBuilder builder = new OracleCommandBuilder(adapter);
                         obj = command.ExecuteScalar();
-                        LoggerBase.logger.Info("[ProcessId:{0}] [コマンド実行] 成功", LoggerBase.ProcessId);
                     }
-
+                    return obj;
                 }
                 catch (OracleException e)
                 {
-                    LoggerBase.logger.Fatal("[ProcessId:{0}] [SQLコマンド実行処理] 異常終了", LoggerBase.ProcessId);
-                    LoggerBase.logger.Fatal(e.ToString());
-                    result = false;
+                    throw;
                 }
                 finally
                 {
                     command.Connection.Close();
-                    LoggerBase.logger.Info("[ProcessId:{0}] [DB接続] 終了", LoggerBase.ProcessId);
-                    LoggerBase.logger.Info("[ProcessId:{0}] [SQLコマンド実行処理] 終了", LoggerBase.ProcessId);
-
                 }
             }
-            return result;
         }
     }
 }
